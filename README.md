@@ -1,2 +1,3 @@
 # namaclicker
-АХХХ
+Fucking B[boink]CH PARTY!
+Я тут добавил картинку!

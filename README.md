@@ -1,2 +1,2 @@
 # namaclicker
-NamaClicker The Game
+Fucking B[boink]CH PARTY!

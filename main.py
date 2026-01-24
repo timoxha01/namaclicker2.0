@@ -1,8 +1,4 @@
 import random
-from re import T
-from time import time
-
-from numpy import short
 import pygame
 
 pygame.init()
@@ -101,7 +97,7 @@ def choose_tama(tamas):
         if roll <= current:
             return tama
 
-timer = Timer(1000)
+person_clicking_text_timer = Timer(500)
 
 seen_tamas = set()
 tama_on_screen = tamas[0]
@@ -129,7 +125,7 @@ while running:
                     random.randint(0, W - 50),
                     random.randint(0, H - 50),
                 )
-                timer.reset()
+                person_clicking_text_timer.reset()
                 if total_clicks % 10 == 0:
                     tama_on_screen = choose_tama(tamas)
                     tama_on_screen.pulse()
@@ -147,7 +143,7 @@ while running:
         screen.blit(clicks_text, (W // 2 - clicks_text.get_width() // 2, 450))
         if show_boost:
             screen.blit(boost_plus_font.render(f"+{tama_on_screen.boost}", True, WHITE), boost_pos)
-            if timer.done():
+            if person_clicking_text_timer.done():
                 show_boost = False
         if total_clicks == 0:
             screen.blit(

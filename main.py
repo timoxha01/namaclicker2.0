@@ -1,11 +1,14 @@
 import random
+from re import T
+from time import time
 
+from numpy import short
 import pygame
 
 pygame.init()
 
 W, H = 800, 600
-FPS = 50
+FPS = 60
 mode = "game"
 
 GREY = (128, 128, 128)
@@ -15,6 +18,7 @@ WHITE = (255, 255, 255)
 pygame.display.set_caption("NamaClicker 2.0 | Prototype")
 pygame.display.set_icon(pygame.image.load("assets/images/tamas/classic.png"))
 clicks_font = pygame.font.Font("assets/fonts/PixelifySans-Medium.ttf", 40)
+boost_plus_font = pygame.font.Font("assets/fonts/PixelifySans-Medium.ttf", 30)
 zero_clicks_font = pygame.font.Font("assets/fonts/PixelifySans-Medium.ttf", 25)
 screen = pygame.display.set_mode((W, H))
 clock = pygame.time.Clock()
@@ -63,6 +67,17 @@ class Namas:
         self.target_scale = 1.0
         self.pulsing = True
 
+class Timer:
+    def __init__(self, duration):
+        self.duration = duration
+        self.start = pygame.time.get_ticks()
+
+    def done(self):
+        return pygame.time.get_ticks() - self.start >= self.duration
+
+    def reset(self):
+        self.start = pygame.time.get_ticks()
+
 
 tamas = [
     Namas("classic", "assets/images/tamas/classic.png", 0.9),
@@ -86,10 +101,12 @@ def choose_tama(tamas):
         if roll <= current:
             return tama
 
+timer = Timer(1000)
 
 seen_tamas = set()
 tama_on_screen = tamas[0]
 total_clicks = 0
+show_boost = False
 
 running = True
 while running:
@@ -106,10 +123,16 @@ while running:
             if tama_on_screen.rect.collidepoint(event.pos):
                 tama_on_screen.add_clicks(1, tama_on_screen.boost)
                 total_clicks += 1 * tama_on_screen.boost
+                show_boost = True
+                show_boost = True
+                boost_pos = (
+                    random.randint(0, W - 50),
+                    random.randint(0, H - 50),
+                )
+                timer.reset()
                 if total_clicks % 10 == 0:
                     tama_on_screen = choose_tama(tamas)
                     tama_on_screen.pulse()
-
                 # Достижение: Собрать все виды tamas
                 seen_tamas.add(tama_on_screen.name)
                 if len(seen_tamas) == len(tamas):
@@ -122,6 +145,10 @@ while running:
 
         clicks_text = clicks_font.render(str(total_clicks), True, WHITE)
         screen.blit(clicks_text, (W // 2 - clicks_text.get_width() // 2, 450))
+        if show_boost:
+            screen.blit(boost_plus_font.render(f"+{tama_on_screen.boost}", True, WHITE), boost_pos)
+            if timer.done():
+                show_boost = False
         if total_clicks == 0:
             screen.blit(
                 zero_clicks_font.render(

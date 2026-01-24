@@ -120,7 +120,6 @@ while running:
                 tama_on_screen.add_clicks(1, tama_on_screen.boost)
                 total_clicks += 1 * tama_on_screen.boost
                 show_boost = True
-                show_boost = True
                 boost_pos = (
                     random.randint(0, W - 50),
                     random.randint(0, H - 50),

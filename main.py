@@ -14,7 +14,8 @@ WHITE = (255, 255, 255)
 
 pygame.display.set_caption("NamaClicker 2.0 | Prototype")
 pygame.display.set_icon(pygame.image.load("assets/images/tamas/classic.png"))
-font = pygame.font.Font("assets/fonts/PixelifySans-Medium.ttf", 40)
+clicks_font = pygame.font.Font("assets/fonts/PixelifySans-Medium.ttf", 40)
+zero_clicks_font = pygame.font.Font("assets/fonts/PixelifySans-Medium.ttf", 25)
 screen = pygame.display.set_mode((W, H))
 clock = pygame.time.Clock()
 
@@ -23,17 +24,44 @@ class Namas:
     def __init__(self, name, path, chance):
         self.name = name
         self.pos = (W // 2, H // 2)
-        self.image = pygame.image.load(path).convert_alpha()
+        self.original_image = pygame.image.load(path).convert_alpha()
+        self.image = self.original_image
         self.rect = self.image.get_rect(center=self.pos)
         self.chance = chance
         self.clicks = 0
         self.boost = 1
-        
+        self.scale = 1.0
+        self.target_scale = 1.0
+        self.scale_speed = 0.15
+        self.pulsing = False
+
     def draw(self, screen):
         screen.blit(self.image, self.rect)
-        
+
     def add_clicks(self, amount, boost):
         self.clicks += amount * boost
+
+    def update(self):
+        if self.scale != self.target_scale:
+            self.scale += (self.target_scale - self.scale) * self.scale_speed
+
+            if abs(self.scale - self.target_scale) < 0.01:
+                self.scale = self.target_scale
+                if self.pulsing:
+                    self.target_scale = 1.0
+                    self.pulsing = False
+
+            size = (
+                int(self.original_image.get_width() * self.scale),
+                int(self.original_image.get_height() * self.scale),
+            )
+            self.image = pygame.transform.smoothscale(self.original_image, size)
+            self.rect = self.image.get_rect(center=self.pos)
+
+    def pulse(self):
+        self.scale = 0.85
+        self.target_scale = 1.0
+        self.pulsing = True
 
 
 tamas = [
@@ -80,20 +108,28 @@ while running:
                 total_clicks += 1 * tama_on_screen.boost
                 if total_clicks % 10 == 0:
                     tama_on_screen = choose_tama(tamas)
-                
-                #Достижение: Собрать все виды tamas
+                    tama_on_screen.pulse()
+
+                # Достижение: Собрать все виды tamas
                 seen_tamas.add(tama_on_screen.name)
                 if len(seen_tamas) == len(tamas):
                     pass
 
     if mode == "game" and tama_on_screen is not None:
         screen.fill(GREY)
+        tama_on_screen.update()
         tama_on_screen.draw(screen)
-        
-        clicks_text = font.render(str(total_clicks), True, WHITE)
-        screen.blit(clicks_text, (W // 2 - clicks_text.get_width() // 2, 450))
 
+        clicks_text = clicks_font.render(str(total_clicks), True, WHITE)
+        screen.blit(clicks_text, (W // 2 - clicks_text.get_width() // 2, 450))
+        if total_clicks == 0:
+            screen.blit(
+                zero_clicks_font.render(
+                    "Namatama меняется каждые 10 кликов", True, WHITE
+                ),
+                ((W // 2) // 2.5, 510),
+            )
     pygame.display.flip()
     clock.tick(FPS)
-    
+
 pygame.quit()

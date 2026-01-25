@@ -1,6 +1,6 @@
 import random
-
 import pygame
+
 
 pygame.init()
 
@@ -10,11 +10,10 @@ mode = "menu"
 
 GAME_FONT = "assets/fonts/Tiny5-Regular.ttf"
 GREY = (128, 128, 128)
-LIGHT_BLUE = (173, 216, 230)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
-pygame.display.set_caption("NamaClicker 2.0 | Prototype")
+pygame.display.set_caption("NamaClicker 2.0")
 pygame.display.set_icon(pygame.image.load("assets/images/tamas/classic.png"))
 font_40 = pygame.font.Font(GAME_FONT, 40)
 font_30 = pygame.font.Font(GAME_FONT, 30)
@@ -81,7 +80,7 @@ class Timer:
 
 
 class Button:
-    def __init__(self, x, y, cooldown=10):
+    def __init__(self, x, y):
         self.x = x
         self.y = y
         self.image = pygame.image.load("assets/images/UI/button.png").convert_alpha()
@@ -91,16 +90,36 @@ class Button:
         screen.blit(self.image, self.rect)
 
 tamas = [
-    Namas("classic", "assets/images/tamas/classic.png", 0.99),
-    Namas("like", "assets/images/tamas/like.png", 0.69),
-    Namas("bob", "assets/images/tamas/bob.png", 0.59),
-    Namas("builder", "assets/images/tamas/builder.png", 0.49),
-    Namas("gun", "assets/images/tamas/gun.png", 0.39),
-    Namas("kinger", "assets/images/tamas/kinger.png", 0.29),
-    Namas("vibe", "assets/images/tamas/vibe.png", 0.01),
+    Namas("classic", "assets/images/tamas/classic.png", 1.5), 
+    Namas("search", "assets/images/tamas/search.png", 0.5),
+    Namas("tea", "assets/images/tamas/tea.png", 0.3),
+    Namas("bob", "assets/images/tamas/bob.png", 0.2),
+    Namas("builder", "assets/images/tamas/builder.png", 0.1),
+    Namas("birthday", "assets/images/tamas/birthday.png", 0.1),
+    Namas("stone", "assets/images/tamas/stone.png", 0.1),
+    Namas("gun", "assets/images/tamas/gun.png", 0.05),
+    Namas("galaxy", "assets/images/tamas/galaxy.png", 0.05),
+    Namas("vibe", "assets/images/tamas/vibe.png", 0.03),
     Namas("evil", "assets/images/tamas/evil.png", 0.001),
     Namas("demon", "assets/images/tamas/demon.png", 0.001),
 ]
+
+def add_clicks():
+    global tama_on_screen, total_clicks, show_boost, clicking_text_timer, seen_tamas, boost_pos
+    tama_on_screen.add_clicks(1, tama_on_screen.boost)
+    total_clicks += 1 * tama_on_screen.boost
+    show_boost = True
+    clicking_text_timer.reset()
+    tama_on_screen = choose_tama(tamas)
+    tama_on_screen.pulse()
+    # Достижение: Собрать все виды tamas
+    seen_tamas.add(tama_on_screen.name)
+    if len(seen_tamas) == len(tamas):
+        pass
+    boost_pos = (
+        random.randint(0, W - 50),
+        random.randint(0, H - 50),
+    )    
 
 def choose_tama(tamas):
     total_chance = sum(t.chance for t in tamas)
@@ -117,7 +136,7 @@ button_to_menu_from_game = Button(20, 720)
 button_to_game_from_menu = Button((W // 2) - (183 // 2), (H // 2) - (58 // 2))
 
 clicking_text_timer = Timer(200)
-loading_timer = Timer(400)
+loading_timer = Timer(500)
 
 isLoading = False
 seen_tamas = set()
@@ -148,20 +167,10 @@ while running:
                 next_mode = "menu"
                 loading_timer.reset()
             if tama_on_screen.rect.collidepoint(event.pos) and mode == "game":
-                tama_on_screen.add_clicks(1, tama_on_screen.boost)
-                total_clicks += 1 * tama_on_screen.boost
-                show_boost = True
-                boost_pos = (
-                    random.randint(0, W - 50),
-                    random.randint(0, H - 50),
-                )
-                clicking_text_timer.reset()
-                tama_on_screen = choose_tama(tamas)
-                tama_on_screen.pulse()
-                # Достижение: Собрать все виды tamas
-                seen_tamas.add(tama_on_screen.name)
-                if len(seen_tamas) == len(tamas):
-                    pass
+                add_clicks()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                add_clicks()
 
     if mode == "game" and tama_on_screen is not None:
         screen.fill(GREY)
@@ -183,8 +192,8 @@ while running:
                 show_boost = False
         if total_clicks == 0 and mode == "game":
             screen.blit(
-                font_25.render("Namatama меняется каждые 10 кликов", True, WHITE),
-                (270, 500),
+                font_25.render("Namatama меняется каждый клик", True, WHITE),
+                (300, 500),
             )
     if mode == "menu":
         screen.fill(GREY)

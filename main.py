@@ -1,21 +1,24 @@
 import random
+
 import pygame
 
 pygame.init()
 
-W, H = 800, 600
+W, H = 1000, 800
 FPS = 60
 mode = "game"
 
+GAME_FONT = "assets/fonts/Tiny5-Regular.ttf"
 GREY = (128, 128, 128)
 LIGHT_BLUE = (173, 216, 230)
 WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
 
 pygame.display.set_caption("NamaClicker 2.0 | Prototype")
 pygame.display.set_icon(pygame.image.load("assets/images/tamas/classic.png"))
-clicks_font = pygame.font.Font("assets/fonts/PixelifySans-Medium.ttf", 40)
-boost_plus_font = pygame.font.Font("assets/fonts/PixelifySans-Medium.ttf", 30)
-zero_clicks_font = pygame.font.Font("assets/fonts/PixelifySans-Medium.ttf", 25)
+font_40 = pygame.font.Font(GAME_FONT, 40)
+font_30 = pygame.font.Font(GAME_FONT, 30)
+font_25 = pygame.font.Font(GAME_FONT, 25)
 screen = pygame.display.set_mode((W, H))
 clock = pygame.time.Clock()
 
@@ -23,7 +26,7 @@ clock = pygame.time.Clock()
 class Namas:
     def __init__(self, name, path, chance):
         self.name = name
-        self.pos = (W // 2, H // 2)
+        self.pos = (W // 2, 300)
         self.original_image = pygame.image.load(path).convert_alpha()
         self.image = self.original_image
         self.rect = self.image.get_rect(center=self.pos)
@@ -63,6 +66,7 @@ class Namas:
         self.target_scale = 1.0
         self.pulsing = True
 
+
 class Timer:
     def __init__(self, duration):
         self.duration = duration
@@ -75,6 +79,14 @@ class Timer:
         self.start = pygame.time.get_ticks()
 
 
+class Button:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.image = pygame.image.load("assets/images/UI/button.png").convert_alpha()
+        self.rect = self.image.get_rect(topleft=(self.x, self.y))
+
+
 tamas = [
     Namas("classic", "assets/images/tamas/classic.png", 0.9),
     Namas("like", "assets/images/tamas/like.png", 0.6),
@@ -84,8 +96,9 @@ tamas = [
     Namas("kinger", "assets/images/tamas/kinger.png", 0.2),
     Namas("vibe", "assets/images/tamas/vibe.png", 0.1),
     Namas("evil", "assets/images/tamas/evil.png", 0.01),
-    Namas("demon", "assets/images/tamas/demon.png", 0.001),
+    Namas("demon", "assets/images/tamas/demon.png", 0.01),
 ]
+
 
 def choose_tama(tamas):
     total_chance = sum(t.chance for t in tamas)
@@ -97,7 +110,10 @@ def choose_tama(tamas):
         if roll <= current:
             return tama
 
-person_clicking_text_timer = Timer(500)
+
+button_to_menu_from_game = Button(20, 720)
+
+clicking_text_timer = Timer(250)
 
 seen_tamas = set()
 tama_on_screen = tamas[0]
@@ -110,12 +126,15 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+            # MouseButton действия:
         if (
             event.type == pygame.MOUSEBUTTONDOWN
             and mode == "game"
             and tama_on_screen is not None
             and event.button == 1
         ):
+            if button_to_menu_from_game.rect.collidepoint(event.pos):
+                mode = "menu"
             if tama_on_screen.rect.collidepoint(event.pos):
                 tama_on_screen.add_clicks(1, tama_on_screen.boost)
                 total_clicks += 1 * tama_on_screen.boost
@@ -124,7 +143,7 @@ while running:
                     random.randint(0, W - 50),
                     random.randint(0, H - 50),
                 )
-                person_clicking_text_timer.reset()
+                clicking_text_timer.reset()
                 if total_clicks % 10 == 0:
                     tama_on_screen = choose_tama(tamas)
                     tama_on_screen.pulse()
@@ -137,20 +156,27 @@ while running:
         screen.fill(GREY)
         tama_on_screen.update()
         tama_on_screen.draw(screen)
+        screen.blit(button_to_menu_from_game.image, button_to_menu_from_game.rect)
+        screen.blit(font_30.render("Меню", True, BLACK), (button_to_menu_from_game.x + 52.5, button_to_menu_from_game.y + 10.5))
 
-        clicks_text = clicks_font.render(str(total_clicks), True, WHITE)
-        screen.blit(clicks_text, (W // 2 - clicks_text.get_width() // 2, 450))
+        clicks_text = font_40.render(str(total_clicks), True, WHITE)
+        screen.blit(clicks_text, (W // 2 - clicks_text.get_width() // 2, 440))
         if show_boost:
-            screen.blit(boost_plus_font.render(f"+{tama_on_screen.boost}", True, WHITE), boost_pos)
-            if person_clicking_text_timer.done():
+            screen.blit(
+                font_30.render(f"+{tama_on_screen.boost}", True, WHITE),
+                boost_pos,
+            )
+            if clicking_text_timer.done():
                 show_boost = False
         if total_clicks == 0:
             screen.blit(
-                zero_clicks_font.render(
-                    "Namatama меняется каждые 10 кликов", True, WHITE
-                ),
-                ((W // 2) // 2.5, 510),
+                font_25.render("Namatama меняется каждые 10 кликов", True, WHITE),
+                (270, 500),
             )
+    if mode == "menu":
+        screen.fill(BLACK)
+        screen.blit(font_40.render("MENU", True, WHITE), (400, 290))
+
     pygame.display.flip()
     clock.tick(FPS)
 

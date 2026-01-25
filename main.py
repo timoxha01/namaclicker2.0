@@ -116,8 +116,8 @@ button_to_menu_from_game = Button(20, 720)
 
 button_to_game_from_menu = Button((W // 2) - (183 // 2), (H // 2) - (58 // 2))
 
-clicking_text_timer = Timer(250)
-loading_timer = Timer(1000)
+clicking_text_timer = Timer(200)
+loading_timer = Timer(400)
 
 isLoading = False
 seen_tamas = set()
@@ -142,9 +142,11 @@ while running:
             ):
                 isLoading = True
                 next_mode = "game"
+                loading_timer.reset()
             if button_to_menu_from_game.rect.collidepoint(event.pos) and mode == "game":
                 isLoading = True
                 next_mode = "menu"
+                loading_timer.reset()
             if tama_on_screen.rect.collidepoint(event.pos) and mode == "game":
                 tama_on_screen.add_clicks(1, tama_on_screen.boost)
                 total_clicks += 1 * tama_on_screen.boost
@@ -175,7 +177,7 @@ while running:
         if show_boost and mode == "game":
             screen.blit(
                 font_30.render(f"+{tama_on_screen.boost}", True, WHITE),
-                boost_pos,
+                boost_pos
             )
             if clicking_text_timer.done() and mode == "game":
                 show_boost = False
@@ -185,7 +187,7 @@ while running:
                 (270, 500),
             )
     if mode == "menu":
-        screen.fill(BLACK)
+        screen.fill(GREY)
         button_to_game_from_menu.draw(screen)
         screen.blit(
             font_30.render("Играть", True, BLACK),
@@ -193,12 +195,10 @@ while running:
         )
     #Загрузка
     if isLoading:
-        screen.fill(BLACK)
         screen.blit(inc, (0, 0))
         if loading_timer.done():
             mode = next_mode
             isLoading = False
-            loading_timer.reset()
             
     pygame.display.flip()
     clock.tick(FPS)

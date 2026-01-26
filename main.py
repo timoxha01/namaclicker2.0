@@ -20,7 +20,7 @@ font_25 = pygame.font.Font(GAME_FONT, 25)
 screen = pygame.display.set_mode((W, H))
 clock = pygame.time.Clock()
 
-inc = pygame.image.load("assets/images/UI/loading_screen.png")
+inc = pygame.image.load("assets/images/UI/loading_logo.png")
 credits_bg = pygame.image.load("assets/images/UI/credits.png")
 
 credits_back_button = pygame.image.load("assets/images/UI/button_long.png")
@@ -227,7 +227,10 @@ while running:
         )
     #Загрузка
     if isLoading:
-        screen.blit(inc, (0, 0))
+        screen.fill(GREY)
+        screen.blit(font_40.render("Загрузка...", True, WHITE), (W // 2 - 100, H // 2 - 20))
+        inc_loading_screen = pygame.transform.scale(inc, (110, 30))
+        screen.blit(inc_loading_screen, (890, 770))
         if loading_timer.done():
             mode = next_mode
             isLoading = False

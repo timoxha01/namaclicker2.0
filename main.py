@@ -6,7 +6,7 @@ pygame.init()
 W, H = 1000, 800
 FPS = 60
 mode = "menu"
-lang = "ru"
+lang = ""
 
 GAME_FONT = "assets/fonts/Tiny5-Regular.ttf"
 GREY = (128, 128, 128)
@@ -21,7 +21,7 @@ font_25 = pygame.font.Font(GAME_FONT, 25)
 screen = pygame.display.set_mode((W, H))
 clock = pygame.time.Clock()
 
-inc = pygame.image.load("assets/images/UI/loading_logo.png")
+logo = pygame.image.load("assets/images/UI/loading_logo.png")
 credits_bg_en = pygame.image.load("assets/images/UI/credits_en.png")
 credits_bg_ru = pygame.image.load("assets/images/UI/credits_ru.png")
 

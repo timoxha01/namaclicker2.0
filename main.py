@@ -6,6 +6,7 @@ pygame.init()
 W, H = 1000, 800
 FPS = 60
 mode = "menu"
+lang = "ru"
 
 GAME_FONT = "assets/fonts/Tiny5-Regular.ttf"
 GREY = (128, 128, 128)
@@ -21,7 +22,8 @@ screen = pygame.display.set_mode((W, H))
 clock = pygame.time.Clock()
 
 inc = pygame.image.load("assets/images/UI/loading_logo.png")
-credits_bg = pygame.image.load("assets/images/UI/credits.png")
+credits_bg_en = pygame.image.load("assets/images/UI/credits_en.png")
+credits_bg_ru = pygame.image.load("assets/images/UI/credits_ru.png")
 
 credits_back_button = pygame.image.load("assets/images/UI/button_long.png")
 credits_back_button_rect = credits_back_button.get_rect(center=(W // 2, H - 40))
@@ -139,7 +141,7 @@ button_to_game_from_menu = Button((W // 2) - (183 // 2), (H // 2) - (58 // 2))
 button_to_credits_from_menu = Button((W // 2) - (183 // 2), (H // 2) + 40)
 
 clicking_text_timer = Timer(200)
-loading_timer = Timer(500)
+loading_timer = Timer(1)
 
 isLoading = False
 seen_tamas = set()
@@ -220,7 +222,7 @@ while running:
             (button_to_credits_from_menu.x + 20, button_to_credits_from_menu.y + 14),
         )
     if mode == "credits":
-        screen.blit(credits_bg, (0, 0))
+        screen.blit(credits_bg_ru, (0, 0))
         screen.blit(credits_back_button, credits_back_button_rect)
         screen.blit(
             font_25.render("Нажмите чтобы вернуться в Меню", True, BLACK),
@@ -229,9 +231,6 @@ while running:
     #Загрузка
     if isLoading:
         screen.fill(GREY)
-        screen.blit(font_40.render("Загрузка...", True, WHITE), (W // 2 - 100, H // 2 - 20))
-        inc_loading_screen = pygame.transform.scale(inc, (110, 30))
-        screen.blit(inc_loading_screen, (890, 770))
         if loading_timer.done():
             mode = next_mode
             isLoading = False

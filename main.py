@@ -1,7 +1,6 @@
 import random
 import pygame
 
-
 pygame.init()
 
 W, H = 1000, 800
@@ -22,6 +21,10 @@ screen = pygame.display.set_mode((W, H))
 clock = pygame.time.Clock()
 
 inc = pygame.image.load("assets/images/UI/loading_screen.png")
+credits_bg = pygame.image.load("assets/images/UI/credits.png")
+
+credits_back_button = pygame.image.load("assets/images/UI/button_long.png")
+credits_back_button_rect = credits_back_button.get_rect(center=(W // 2, H - 40))
 
 class Namas:
     def __init__(self, name, path, chance):
@@ -132,8 +135,8 @@ def choose_tama(tamas):
             return tama
 
 button_to_menu_from_game = Button(20, 720)
-
 button_to_game_from_menu = Button((W // 2) - (183 // 2), (H // 2) - (58 // 2))
+button_to_credits_from_menu = Button((W // 2) - (183 // 2), (H // 2) + 40)
 
 clicking_text_timer = Timer(200)
 loading_timer = Timer(500)
@@ -163,6 +166,14 @@ while running:
                 next_mode = "game"
                 loading_timer.reset()
             if button_to_menu_from_game.rect.collidepoint(event.pos) and mode == "game":
+                isLoading = True
+                next_mode = "menu"
+                loading_timer.reset()
+            if button_to_credits_from_menu.rect.collidepoint(event.pos) and mode == "menu":
+                isLoading = True
+                next_mode = "credits"
+                loading_timer.reset()
+            if credits_back_button_rect.collidepoint(event.pos) and mode == "credits":
                 isLoading = True
                 next_mode = "menu"
                 loading_timer.reset()
@@ -201,6 +212,18 @@ while running:
         screen.blit(
             font_30.render("Играть", True, BLACK),
             (button_to_game_from_menu.x + 50, button_to_game_from_menu.y + 10.5),
+        )
+        button_to_credits_from_menu.draw(screen)
+        screen.blit(
+            font_25.render("Информация", True, BLACK),
+            (button_to_credits_from_menu.x + 20, button_to_credits_from_menu.y + 14),
+        )
+    if mode == "credits":
+        screen.blit(credits_bg, (0, 0))
+        screen.blit(credits_back_button, credits_back_button_rect)
+        screen.blit(
+            font_25.render("Нажмите чтобы вернуться в Меню", True, BLACK),
+            (credits_back_button_rect.x + 15, credits_back_button_rect.y + 14),
         )
     #Загрузка
     if isLoading:

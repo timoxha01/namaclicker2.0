@@ -1,4 +1,5 @@
 import random
+from tkinter import TclError
 
 import pygame
 
@@ -29,7 +30,6 @@ menu_screen = pygame.image.load("assets/images/UI/menu_screen.png")
 
 achievements_bg_ru = pygame.image.load("assets/images/UI/achievements_ru.png")
 achievements_bg_en = pygame.image.load("assets/images/UI/achievements_en.png")
-hidden_achievement = pygame.image.load("assets/images/UI/hidden_achi_ru.png")
 
 credits_back_button = pygame.image.load("assets/images/UI/button_long.png")
 achievements_back_button = pygame.image.load("assets/images/UI/button_long.png")
@@ -39,8 +39,12 @@ achievements_back_button_rect = achievements_back_button.get_rect(
 )
 
 byebye_nama_sound = pygame.mixer.Sound("assets/sounds/sfxes/namatama_byebye.mp3")
-
-
+click_sound = pygame.mixer.Sound("assets/sounds/sfxes/click_sound.mp3")
+click_sound.set_volume(0.4)
+mouse_click_sound = pygame.mixer.Sound("assets/sounds/sfxes/mouse_click.mp3")
+mouse_click_sound.set_volume(0.2)
+glitch_sound = pygame.mixer.Sound("assets/sounds/sfxes/screamer_glitch.mp3")
+sanic_sound = pygame.mixer.Sound("assets/sounds/sfxes/screamer_sanic.mp3")
 
 class Namas:
     def __init__(self, name, path, chance):
@@ -50,7 +54,6 @@ class Namas:
         self.image = self.original_image
         self.rect = self.image.get_rect(center=self.pos)
         self.chance = chance
-        self.clicks = 0
         self.boost = 1
         self.scale = 1.0
         self.target_scale = 1.0
@@ -141,10 +144,10 @@ tamas = [
     Namas("gun", "assets/images/tamas/gun.png", 0.05),
     Namas("galaxy", "assets/images/tamas/galaxy.png", 0.05),
     Namas("vibe", "assets/images/tamas/vibe.png", 0.03),
-    Namas("evil", "assets/images/tamas/evil.png", 0.001),
-    Namas("demon", "assets/images/tamas/demon.png", 0.001),
-    Namas("sanic", "assets/images/tamas/sanic_ee.png", 0.0001),
-    Namas("glitch", "assets/images/tamas/glitch_ee.png", 0.0001),
+    Namas("evil", "assets/images/tamas/evil.png", 0.01),
+    Namas("demon", "assets/images/tamas/demon.png", 0.01),
+    Namas("sanic", "assets/images/tamas/sanic_ee.png", 0.001),
+    Namas("glitch", "assets/images/tamas/glitch_ee.png", 0.001),
 ]
 
 def add_clicks():
@@ -160,6 +163,7 @@ def add_clicks():
     clicking_text_timer.reset()
     tama_on_screen = choose_tama(tamas)
     tama_on_screen.pulse()
+    click_sound.play()
     # Достижение: Собрать все виды tamas
     seen_tamas.add(tama_on_screen.name)
     if len(seen_tamas) == len(tamas):
@@ -192,7 +196,7 @@ loading_timer = Timer(1)
 isLoading = False
 seen_tamas = set()
 tama_on_screen = tamas[0]
-total_clicks = 0
+total_clicks = 999
 show_boost = False
 next_mode = ""
 
@@ -242,10 +246,10 @@ while running:
                 next_mode = "menu"
                 loading_timer.reset()
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
+            if event.key == pygame.K_SPACE and mode == "game":
                 add_clicks()
 
-    if mode == "game" and tama_on_screen is not None:
+    if mode == "game":
         screen.fill(GREY)
         button_to_menu_from_game.draw(screen)
         screen.blit(
@@ -256,6 +260,12 @@ while running:
         tama_on_screen.draw(screen)
         clicks_text = font_40.render(str(total_clicks), True, WHITE)
         screen.blit(clicks_text, (W // 2 - clicks_text.get_width() // 2, 440))
+        if tama_on_screen.name == "glitch":
+            cfa_IT.unlocked = True
+            glitch_sound.play()
+        if tama_on_screen.name == "sanic":
+            cfa_sanic.unlocked = True
+            sanic_sound.play()
         if show_boost and mode == "game":
             screen.blit(
                 font_30.render(f"+{tama_on_screen.boost}", True, WHITE), boost_pos
@@ -267,6 +277,12 @@ while running:
                 font_25.render("Namatama меняется каждый клик", True, WHITE),
                 (300, 500),
             )
+        if total_clicks >= 1000:
+            cfa_1000_clicks.unlocked = True
+        if total_clicks >= 10000:
+            cfa_10000_clicks.unlocked = True
+        if total_clicks >= 100000:
+            cfa_1000000_clicks.unlocked = True
     if mode == "menu":
         screen.blit(menu_screen, (0, 0))
         button_to_achievements_from_menu.draw(screen)
@@ -312,6 +328,7 @@ while running:
     if isLoading:
         screen.fill(GREY)
         if loading_timer.done():
+            mouse_click_sound.play()
             mode = next_mode
             isLoading = False
 

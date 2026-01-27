@@ -21,9 +21,9 @@ font_25 = pygame.font.Font(GAME_FONT, 25)
 screen = pygame.display.set_mode((W, H))
 clock = pygame.time.Clock()
 
-logo = pygame.image.load("assets/images/UI/loading_logo.png")
 credits_bg_en = pygame.image.load("assets/images/UI/credits_en.png")
 credits_bg_ru = pygame.image.load("assets/images/UI/credits_ru.png")
+menu_screen = pygame.image.load("assets/images/UI/menu_screen.png")
 
 credits_back_button = pygame.image.load("assets/images/UI/button_long.png")
 credits_back_button_rect = credits_back_button.get_rect(center=(W // 2, H - 40))
@@ -210,7 +210,7 @@ while running:
                 (300, 500),
             )
     if mode == "menu":
-        screen.fill(GREY)
+        screen.blit(menu_screen, (0, 0))
         button_to_game_from_menu.draw(screen)
         screen.blit(
             font_30.render("Играть", True, BLACK),

@@ -1,5 +1,4 @@
 import random
-from tkinter import TclError
 
 import pygame
 
@@ -111,6 +110,7 @@ class Button:
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 
+#добавить переменную, которая хранит в себе имя ачивки. + создание новой функции pop_out, где будет логика самого поп-аута
 class CoverForAchievement:
     def __init__(self, x, y):
         self.x = x

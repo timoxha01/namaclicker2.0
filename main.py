@@ -1,4 +1,6 @@
 import random
+from tokenize import GREATER
+
 import pygame
 
 pygame.init()
@@ -24,9 +26,14 @@ clock = pygame.time.Clock()
 credits_bg_en = pygame.image.load("assets/images/UI/credits_en.png")
 credits_bg_ru = pygame.image.load("assets/images/UI/credits_ru.png")
 menu_screen = pygame.image.load("assets/images/UI/menu_screen.png")
+achievements_bg_ru = pygame.image.load("assets/images/UI/achievements_ru.png")
+achievements_bg_en = pygame.image.load("assets/images/UI/achievements_en.png")
 
 credits_back_button = pygame.image.load("assets/images/UI/button_long.png")
+achievements_back_button = pygame.image.load("assets/images/UI/button_long.png")
 credits_back_button_rect = credits_back_button.get_rect(center=(W // 2, H - 40))
+achievements_back_button_rect = achievements_back_button.get_rect(center=(W // 2, H - 55))
+
 
 class Namas:
     def __init__(self, name, path, chance):
@@ -90,12 +97,13 @@ class Button:
         self.y = y
         self.image = pygame.image.load("assets/images/UI/button.png").convert_alpha()
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
-        
+
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 
+
 tamas = [
-    Namas("classic", "assets/images/tamas/classic.png", 1.5), 
+    Namas("classic", "assets/images/tamas/classic.png", 1.5),
     Namas("search", "assets/images/tamas/search.png", 0.5),
     Namas("tea", "assets/images/tamas/tea.png", 0.3),
     Namas("bob", "assets/images/tamas/bob.png", 0.2),
@@ -107,10 +115,19 @@ tamas = [
     Namas("vibe", "assets/images/tamas/vibe.png", 0.03),
     Namas("evil", "assets/images/tamas/evil.png", 0.001),
     Namas("demon", "assets/images/tamas/demon.png", 0.001),
+    Namas("sanic", "assets/images/tamas/sanic_ee.png", 0.0001),
+    Namas("glitch", "assets/images/tamas/glitch_ee.png", 0.0001)
 ]
 
+
 def add_clicks():
-    global tama_on_screen, total_clicks, show_boost, clicking_text_timer, seen_tamas, boost_pos
+    global \
+        tama_on_screen, \
+        total_clicks, \
+        show_boost, \
+        clicking_text_timer, \
+        seen_tamas, \
+        boost_pos
     tama_on_screen.add_clicks(1, tama_on_screen.boost)
     total_clicks += 1 * tama_on_screen.boost
     show_boost = True
@@ -124,7 +141,8 @@ def add_clicks():
     boost_pos = (
         random.randint(0, W - 50),
         random.randint(0, H - 50),
-    )    
+    )
+
 
 def choose_tama(tamas):
     total_chance = sum(t.chance for t in tamas)
@@ -136,9 +154,11 @@ def choose_tama(tamas):
         if roll <= current:
             return tama
 
+
 button_to_menu_from_game = Button(20, 720)
 button_to_game_from_menu = Button((W // 2) - (183 // 2), (H // 2) - (58 // 2))
-button_to_credits_from_menu = Button((W // 2) - (183 // 2), (H // 2) + 40)
+button_to_credits_from_menu = Button((W // 2) - (183 // 2), (H // 2) + 110)
+button_to_achievements_from_menu = Button((W // 2) - (183 // 2), (H // 2) + 40)
 
 clicking_text_timer = Timer(200)
 loading_timer = Timer(1)
@@ -154,17 +174,12 @@ running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            #перед закрытием добавить звук намы "byebye!"
+            # перед закрытием добавить звук намы "byebye!"
             running = False
 
             # MouseButton действия:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            if (
-                event.type == pygame.MOUSEBUTTONDOWN
-                and event.button == 1
-                and button_to_game_from_menu.rect.collidepoint(event.pos)
-                and mode == "menu"
-            ):
+            if button_to_game_from_menu.rect.collidepoint(event.pos) and mode == "menu":
                 isLoading = True
                 next_mode = "game"
                 loading_timer.reset()
@@ -172,16 +187,31 @@ while running:
                 isLoading = True
                 next_mode = "menu"
                 loading_timer.reset()
-            if button_to_credits_from_menu.rect.collidepoint(event.pos) and mode == "menu":
+            if (
+                button_to_credits_from_menu.rect.collidepoint(event.pos)
+                and mode == "menu"
+            ):
                 isLoading = True
                 next_mode = "credits"
                 loading_timer.reset()
+
             if credits_back_button_rect.collidepoint(event.pos) and mode == "credits":
                 isLoading = True
                 next_mode = "menu"
                 loading_timer.reset()
+            if (
+                button_to_achievements_from_menu.rect.collidepoint(event.pos)
+                and mode == "menu"
+            ):
+                isLoading = True
+                next_mode = "achievements"
+                loading_timer.reset()
             if tama_on_screen.rect.collidepoint(event.pos) and mode == "game":
                 add_clicks()
+            if achievements_back_button_rect.collidepoint(event.pos) and mode == "achievements":
+                isLoading = True
+                next_mode = "menu"
+                loading_timer.reset()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 add_clicks()
@@ -199,8 +229,7 @@ while running:
         screen.blit(clicks_text, (W // 2 - clicks_text.get_width() // 2, 440))
         if show_boost and mode == "game":
             screen.blit(
-                font_30.render(f"+{tama_on_screen.boost}", True, WHITE),
-                boost_pos
+                font_30.render(f"+{tama_on_screen.boost}", True, WHITE), boost_pos
             )
             if clicking_text_timer.done() and mode == "game":
                 show_boost = False
@@ -211,7 +240,12 @@ while running:
             )
     if mode == "menu":
         screen.blit(menu_screen, (0, 0))
+        button_to_achievements_from_menu.draw(screen)
         button_to_game_from_menu.draw(screen)
+        screen.blit(
+            font_30.render("Достижения", True, BLACK),
+            (button_to_game_from_menu.x + 5, button_to_game_from_menu.y + 80.5),
+        )
         screen.blit(
             font_30.render("Играть", True, BLACK),
             (button_to_game_from_menu.x + 50, button_to_game_from_menu.y + 10.5),
@@ -221,6 +255,14 @@ while running:
             font_25.render("Информация", True, BLACK),
             (button_to_credits_from_menu.x + 20, button_to_credits_from_menu.y + 14),
         )
+    if mode == "achievements":
+        screen.fill(GREY)
+        screen.blit(achievements_bg_ru, (0, 0))
+        screen.blit(achievements_back_button, achievements_back_button_rect)
+        screen.blit(
+            font_25.render("Нажмите чтобы вернуться в Меню", True, BLACK),
+            (achievements_back_button_rect.x + 12, achievements_back_button_rect.y + 14),
+        )
     if mode == "credits":
         screen.blit(credits_bg_ru, (0, 0))
         screen.blit(credits_back_button, credits_back_button_rect)
@@ -228,13 +270,14 @@ while running:
             font_25.render("Нажмите чтобы вернуться в Меню", True, BLACK),
             (credits_back_button_rect.x + 15, credits_back_button_rect.y + 14),
         )
-    #Загрузка
+
+    # Загрузка
     if isLoading:
         screen.fill(GREY)
         if loading_timer.done():
             mode = next_mode
             isLoading = False
-            
+
     pygame.display.flip()
     clock.tick(FPS)
 

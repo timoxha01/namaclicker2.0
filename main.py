@@ -1,9 +1,9 @@
 import random
-from tokenize import GREATER
 
 import pygame
 
 pygame.init()
+pygame.mixer.init()
 
 W, H = 1000, 800
 FPS = 60
@@ -26,13 +26,20 @@ clock = pygame.time.Clock()
 credits_bg_en = pygame.image.load("assets/images/UI/credits_en.png")
 credits_bg_ru = pygame.image.load("assets/images/UI/credits_ru.png")
 menu_screen = pygame.image.load("assets/images/UI/menu_screen.png")
+
 achievements_bg_ru = pygame.image.load("assets/images/UI/achievements_ru.png")
 achievements_bg_en = pygame.image.load("assets/images/UI/achievements_en.png")
+hidden_achievement = pygame.image.load("assets/images/UI/hidden_achi_ru.png")
 
 credits_back_button = pygame.image.load("assets/images/UI/button_long.png")
 achievements_back_button = pygame.image.load("assets/images/UI/button_long.png")
 credits_back_button_rect = credits_back_button.get_rect(center=(W // 2, H - 40))
-achievements_back_button_rect = achievements_back_button.get_rect(center=(W // 2, H - 55))
+achievements_back_button_rect = achievements_back_button.get_rect(
+    center=(W // 2, H - 55)
+)
+
+byebye_nama_sound = pygame.mixer.Sound("assets/sounds/sfxes/namatama_byebye.mp3")
+
 
 
 class Namas:
@@ -101,6 +108,27 @@ class Button:
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 
+class CoverForAchievement:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.image = pygame.image.load("assets/images/UI/hidden_achi_ru.png").convert_alpha()
+        self.rect = self.image.get_rect(topleft=(self.x, self.y))
+        self.unlocked = False
+        
+    def draw(self, screen):
+        if not self.unlocked:
+            screen.blit(self.image, self.rect)
+            
+    
+
+cfa_collect_all_tamas = CoverForAchievement(64, 80)
+cfa_sanic = CoverForAchievement(372, 80)
+cfa_IT = CoverForAchievement(679, 80)
+cfa_1000_clicks = CoverForAchievement(65, 382)
+cfa_10000_clicks = CoverForAchievement(372, 382)
+cfa_1000000_clicks = CoverForAchievement(679, 382)
+
 
 tamas = [
     Namas("classic", "assets/images/tamas/classic.png", 1.5),
@@ -116,9 +144,8 @@ tamas = [
     Namas("evil", "assets/images/tamas/evil.png", 0.001),
     Namas("demon", "assets/images/tamas/demon.png", 0.001),
     Namas("sanic", "assets/images/tamas/sanic_ee.png", 0.0001),
-    Namas("glitch", "assets/images/tamas/glitch_ee.png", 0.0001)
+    Namas("glitch", "assets/images/tamas/glitch_ee.png", 0.0001),
 ]
-
 
 def add_clicks():
     global \
@@ -128,7 +155,6 @@ def add_clicks():
         clicking_text_timer, \
         seen_tamas, \
         boost_pos
-    tama_on_screen.add_clicks(1, tama_on_screen.boost)
     total_clicks += 1 * tama_on_screen.boost
     show_boost = True
     clicking_text_timer.reset()
@@ -137,7 +163,7 @@ def add_clicks():
     # Достижение: Собрать все виды tamas
     seen_tamas.add(tama_on_screen.name)
     if len(seen_tamas) == len(tamas):
-        pass
+        cfa_collect_all_tamas.unlocked = True
     boost_pos = (
         random.randint(0, W - 50),
         random.randint(0, H - 50),
@@ -174,9 +200,9 @@ running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            # перед закрытием добавить звук намы "byebye!"
+            byebye_nama_sound.play()
+            pygame.time.delay(int(byebye_nama_sound.get_length() * 1000))
             running = False
-
             # MouseButton действия:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if button_to_game_from_menu.rect.collidepoint(event.pos) and mode == "menu":
@@ -208,7 +234,10 @@ while running:
                 loading_timer.reset()
             if tama_on_screen.rect.collidepoint(event.pos) and mode == "game":
                 add_clicks()
-            if achievements_back_button_rect.collidepoint(event.pos) and mode == "achievements":
+            if (
+                achievements_back_button_rect.collidepoint(event.pos)
+                and mode == "achievements"
+            ):
                 isLoading = True
                 next_mode = "menu"
                 loading_timer.reset()
@@ -256,12 +285,20 @@ while running:
             (button_to_credits_from_menu.x + 20, button_to_credits_from_menu.y + 14),
         )
     if mode == "achievements":
-        screen.fill(GREY)
         screen.blit(achievements_bg_ru, (0, 0))
         screen.blit(achievements_back_button, achievements_back_button_rect)
+        cfa_collect_all_tamas.draw(screen)
+        cfa_sanic.draw(screen)
+        cfa_IT.draw(screen)
+        cfa_1000_clicks.draw(screen)
+        cfa_10000_clicks.draw(screen)
+        cfa_1000000_clicks.draw(screen)
         screen.blit(
             font_25.render("Нажмите чтобы вернуться в Меню", True, BLACK),
-            (achievements_back_button_rect.x + 12, achievements_back_button_rect.y + 14),
+            (
+                achievements_back_button_rect.x + 12,
+                achievements_back_button_rect.y + 14,
+            ),
         )
     if mode == "credits":
         screen.blit(credits_bg_ru, (0, 0))

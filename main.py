@@ -45,6 +45,7 @@ mouse_click_sound.set_volume(0.2)
 glitch_sound = pygame.mixer.Sound("assets/sounds/sfxes/screamer_glitch.mp3")
 sanic_sound = pygame.mixer.Sound("assets/sounds/sfxes/screamer_sanic.mp3")
 
+
 class Namas:
     def __init__(self, name, path, chance):
         self.name = name
@@ -110,31 +111,72 @@ class Button:
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 
-#добавить переменную, которая хранит в себе имя ачивки. + создание новой функции pop_out, где будет логика самого поп-аута. переименовать класс просто на achievements
-class CoverForAchievement:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.image = pygame.image.load("assets/images/UI/hidden_achi_ru.png").convert_alpha()
-        self.rect = self.image.get_rect(topleft=(self.x, self.y))
+
+class Achievements:
+    def __init__(self, pop_out_text, x, y):
+        self.x_pop_out = 500
+        self.y_pop_out = -137
+        self.target_y = 0
+        self.speed = 7
+        self.pop_out_text = pop_out_text
+        self.pop_out_label = pygame.image.load(
+            "assets/images/UI/pop_out_label.png"
+        ).convert_alpha()
+
+        self.image = pygame.image.load(
+            "assets/images/UI/hidden_achi_ru.png"
+        ).convert_alpha()
+        self.rect = self.image.get_rect(topleft=(x, y))
+
         self.unlocked = False
-        
+        self.show_popup = False
+        self.timer = Timer(2000)
+        self.hiding = False
+
     def draw(self, screen):
         if not self.unlocked:
             screen.blit(self.image, self.rect)
-            
-    
 
-cfa_collect_all_tamas = CoverForAchievement(64, 80)
-cfa_sanic = CoverForAchievement(372, 80)
-cfa_IT = CoverForAchievement(679, 80)
-cfa_1000_clicks = CoverForAchievement(65, 382)
-cfa_10000_clicks = CoverForAchievement(372, 382)
-cfa_1000000_clicks = CoverForAchievement(679, 382)
+    def pop_out(self, screen):
+        if not self.show_popup:
+            return
+    
+        if self.y_pop_out < self.target_y and not self.timer.done():
+            self.y_pop_out += self.speed
+            if self.y_pop_out >= self.target_y:
+                self.y_pop_out = self.target_y
+                self.timer.reset()
+    
+        elif self.timer.done():
+            self.y_pop_out -= self.speed
+            if self.y_pop_out <= -137:
+                self.y_pop_out = -137
+                self.show_popup = False
+                return
+    
+        screen.blit(self.pop_out_label, (self.x_pop_out, self.y_pop_out))
+        screen.blit(
+            font_40.render("Новое достижение!", True, BLACK),
+            (self.x_pop_out + 40, self.y_pop_out + 25),
+        )
+        screen.blit(
+            font_30.render(self.pop_out_text, True, BLACK),
+            (self.x_pop_out + ((font_30.size(self.pop_out_text)[0] // 4) - 30),
+             self.y_pop_out + 70),
+        )
+
+
+        
+cfa_collect_all_tamas = Achievements("Собрать все NamaTama", 64, 80)
+cfa_sanic_popout = Achievements("Встретить Sanic", 372, 80)
+cfa_IT = Achievements("Встретить ...", 679, 80)
+cfa_1000_clicks = Achievements("Набрать 1000 кликов", 65, 382)
+cfa_10000_clicks = Achievements("Набрать 10000 кликов", 372, 382)
+cfa_1000000_clicks = Achievements("Набрать 1000000 кликов", 679, 382)
 
 
 tamas = [
-    Namas("classic", "assets/images/tamas/classic.png", 1.5),
+    Namas("classic", "assets/images/tamas/classic.png", 1.0),
     Namas("search", "assets/images/tamas/search.png", 0.5),
     Namas("tea", "assets/images/tamas/tea.png", 0.3),
     Namas("bob", "assets/images/tamas/bob.png", 0.2),
@@ -149,6 +191,7 @@ tamas = [
     Namas("sanic", "assets/images/tamas/sanic_ee.png", 0.001),
     Namas("glitch", "assets/images/tamas/glitch_ee.png", 0.001),
 ]
+
 
 def add_clicks():
     global \
@@ -263,8 +306,18 @@ while running:
         if tama_on_screen.name == "glitch":
             cfa_IT.unlocked = True
             glitch_sound.play()
+            if cfa_IT.unlocked and not cfa_IT.show_popup:
+                cfa_IT.show_popup = True
+            
+            if cfa_IT.show_popup:
+                cfa_IT.pop_out(screen)
         if tama_on_screen.name == "sanic":
-            cfa_sanic.unlocked = True
+            cfa_sanic_popout.unlocked = True
+            if cfa_sanic_popout.unlocked and not cfa_sanic_popout.show_popup:
+                cfa_sanic_popout.show_popup = True
+            
+            if cfa_sanic_popout.show_popup:
+                cfa_sanic_popout.pop_out(screen)
             sanic_sound.play()
         if show_boost and mode == "game":
             screen.blit(
@@ -279,19 +332,36 @@ while running:
             )
         if total_clicks >= 1000:
             cfa_1000_clicks.unlocked = True
+            if cfa_1000_clicks.unlocked and not cfa_1000_clicks.show_popup:
+                cfa_1000_clicks.show_popup = True
+            
+            if cfa_1000_clicks.show_popup:
+                cfa_1000_clicks.pop_out(screen)
         if total_clicks >= 10000:
             cfa_10000_clicks.unlocked = True
+            if cfa_10000_clicks.unlocked and not cfa_10000_clicks.show_popup:
+                cfa_10000_clicks.show_popup = True
+            
+            if cfa_10000_clicks.show_popup:
+                cfa_10000_clicks.pop_out(screen)
         if total_clicks >= 100000:
             cfa_1000000_clicks.unlocked = True
+            if cfa_1000000_clicks.unlocked and not cfa_1000000_clicks.show_popup:
+                cfa_1000000_clicks.show_popup = True
+            
+            if cfa_1000000_clicks.show_popup:
+                cfa_1000000_clicks.pop_out(screen)
+
     if mode == "menu":
         screen.blit(menu_screen, (0, 0))
         button_to_achievements_from_menu.draw(screen)
         button_to_game_from_menu.draw(screen)
-        screen.blit(
+        screen.blit( 
             font_30.render("Достижения", True, BLACK),
             (button_to_game_from_menu.x + 5, button_to_game_from_menu.y + 80.5),
         )
         screen.blit(
+            
             font_30.render("Играть", True, BLACK),
             (button_to_game_from_menu.x + 50, button_to_game_from_menu.y + 10.5),
         )
@@ -301,10 +371,10 @@ while running:
             (button_to_credits_from_menu.x + 20, button_to_credits_from_menu.y + 14),
         )
     if mode == "achievements":
-        screen.blit(achievements_bg_ru, (0, 0))
+        screen.blit(achievements_bg_ru, (0, 0)) 
         screen.blit(achievements_back_button, achievements_back_button_rect)
         cfa_collect_all_tamas.draw(screen)
-        cfa_sanic.draw(screen)
+        cfa_sanic_popout.draw(screen)
         cfa_IT.draw(screen)
         cfa_1000_clicks.draw(screen)
         cfa_10000_clicks.draw(screen)

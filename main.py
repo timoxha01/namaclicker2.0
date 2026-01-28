@@ -1,5 +1,4 @@
 import random
-
 import pygame
 
 pygame.init()
@@ -44,7 +43,6 @@ mouse_click_sound = pygame.mixer.Sound("assets/sounds/sfxes/mouse_click.mp3")
 mouse_click_sound.set_volume(0.2)
 glitch_sound = pygame.mixer.Sound("assets/sounds/sfxes/screamer_glitch.mp3")
 sanic_sound = pygame.mixer.Sound("assets/sounds/sfxes/screamer_sanic.mp3")
-
 
 class Namas:
     def __init__(self, name, path, chance):
@@ -111,23 +109,28 @@ class Button:
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 
-
 class Achievements:
     def __init__(self, pop_out_text, x, y):
-        self.x_pop_out = 500
-        self.y_pop_out = -137
-        self.target_y = 0
+        self.x_pop_out = 500 
+        self.target_y = 30
         self.speed = 7
         self.pop_out_text = pop_out_text
+        self.sound_played = False
         self.pop_out_label = pygame.image.load(
             "assets/images/UI/pop_out_label.png"
         ).convert_alpha()
-
+        self.pop_rect = self.pop_out_label.get_rect(
+            midtop=(W // 2, - self.pop_out_label.get_height())
+        )
+        self.y_pop_out = self.pop_rect.y
+        self.achievement_sound = pygame.mixer.Sound(
+            "assets/sounds/sfxes/announcement.mp3"
+            )
         self.image = pygame.image.load(
             "assets/images/UI/hidden_achi_ru.png"
         ).convert_alpha()
         self.rect = self.image.get_rect(topleft=(x, y))
-
+        
         self.unlocked = False
         self.show_popup = False
         self.timer = Timer(2000)
@@ -140,30 +143,36 @@ class Achievements:
     def pop_out(self, screen):
         if not self.show_popup:
             return
-    
-        if self.y_pop_out < self.target_y and not self.timer.done():
-            self.y_pop_out += self.speed
-            if self.y_pop_out >= self.target_y:
-                self.y_pop_out = self.target_y
+        if not self.sound_played:
+            self.achievement_sound.play()
+            self.sound_played = True
+        if self.pop_rect.y < self.target_y and not self.timer.done():
+            self.pop_rect.y += self.speed
+            if self.pop_rect.y >= self.target_y:
+                self.pop_rect.y = self.target_y
                 self.timer.reset()
-    
-        elif self.timer.done():
-            self.y_pop_out -= self.speed
-            if self.y_pop_out <= -137:
-                self.y_pop_out = -137
+
+        if self.timer.done():
+            self.pop_rect.y -= self.speed
+            if self.pop_rect.y <= -self.pop_rect.height:
+                self.reset_popup()
                 self.show_popup = False
                 return
     
-        screen.blit(self.pop_out_label, (self.x_pop_out, self.y_pop_out))
+        screen.blit(self.pop_out_label, self.pop_rect)
         screen.blit(
             font_40.render("Новое достижение!", True, BLACK),
-            (self.x_pop_out + 40, self.y_pop_out + 25),
+            (self.pop_rect.x + 40, self.pop_rect.y + 25),
         )
         screen.blit(
             font_30.render(self.pop_out_text, True, BLACK),
-            (self.x_pop_out + ((font_30.size(self.pop_out_text)[0] // 4) - 30),
-             self.y_pop_out + 70),
+            (self.pop_rect.x + ((font_30.size(self.pop_out_text)[0] // 4) - 30),
+             self.pop_rect.y + 70),
         )
+    def reset_popup(self):
+        self.y_pop_out = -137
+        self.sound_played = False 
+        self.timer.reset()
 
 
         
@@ -211,6 +220,8 @@ def add_clicks():
     seen_tamas.add(tama_on_screen.name)
     if len(seen_tamas) == len(tamas):
         cfa_collect_all_tamas.unlocked = True
+        cfa_collect_all_tamas.show_popup = True
+        cfa_collect_all_tamas.timer.reset()
     boost_pos = (
         random.randint(0, W - 50),
         random.randint(0, H - 50),
@@ -239,7 +250,7 @@ loading_timer = Timer(1)
 isLoading = False
 seen_tamas = set()
 tama_on_screen = tamas[0]
-total_clicks = 999
+total_clicks = 990
 show_boost = False
 next_mode = ""
 
@@ -303,21 +314,15 @@ while running:
         tama_on_screen.draw(screen)
         clicks_text = font_40.render(str(total_clicks), True, WHITE)
         screen.blit(clicks_text, (W // 2 - clicks_text.get_width() // 2, 440))
-        if tama_on_screen.name == "glitch":
+        if tama_on_screen.name == "glitch" and not cfa_IT.unlocked:
             cfa_IT.unlocked = True
+            cfa_IT.show_popup = True
+            cfa_IT.timer.reset()
             glitch_sound.play()
-            if cfa_IT.unlocked and not cfa_IT.show_popup:
-                cfa_IT.show_popup = True
-            
-            if cfa_IT.show_popup:
-                cfa_IT.pop_out(screen)
-        if tama_on_screen.name == "sanic":
+        if tama_on_screen.name == "sanic" and not cfa_sanic_popout.unlocked:
             cfa_sanic_popout.unlocked = True
-            if cfa_sanic_popout.unlocked and not cfa_sanic_popout.show_popup:
-                cfa_sanic_popout.show_popup = True
-            
-            if cfa_sanic_popout.show_popup:
-                cfa_sanic_popout.pop_out(screen)
+            cfa_sanic_popout.show_popup = True
+            cfa_sanic_popout.timer.reset()
             sanic_sound.play()
         if show_boost and mode == "game":
             screen.blit(
@@ -330,27 +335,25 @@ while running:
                 font_25.render("Namatama меняется каждый клик", True, WHITE),
                 (300, 500),
             )
-        if total_clicks >= 1000:
+        if total_clicks >= 1000 and not cfa_1000_clicks.unlocked:
             cfa_1000_clicks.unlocked = True
-            if cfa_1000_clicks.unlocked and not cfa_1000_clicks.show_popup:
-                cfa_1000_clicks.show_popup = True
-            
-            if cfa_1000_clicks.show_popup:
-                cfa_1000_clicks.pop_out(screen)
-        if total_clicks >= 10000:
+            cfa_1000_clicks.show_popup = True
+            cfa_1000_clicks.timer.reset()
+        if total_clicks >= 10000 and not cfa_10000_clicks.unlocked:
             cfa_10000_clicks.unlocked = True
-            if cfa_10000_clicks.unlocked and not cfa_10000_clicks.show_popup:
-                cfa_10000_clicks.show_popup = True
-            
-            if cfa_10000_clicks.show_popup:
-                cfa_10000_clicks.pop_out(screen)
-        if total_clicks >= 100000:
+            cfa_10000_clicks.show_popup = True
+            cfa_1000_clicks.timer.reset()   
+        if total_clicks >= 100000 and not cfa_1000000_clicks.unlocked:
             cfa_1000000_clicks.unlocked = True
-            if cfa_1000000_clicks.unlocked and not cfa_1000000_clicks.show_popup:
-                cfa_1000000_clicks.show_popup = True
-            
-            if cfa_1000000_clicks.show_popup:
-                cfa_1000000_clicks.pop_out(screen)
+            cfa_1000000_clicks.show_popup = True
+            cfa_1000_clicks.timer.reset()   
+                
+        cfa_1000_clicks.pop_out(screen)
+        cfa_10000_clicks.pop_out(screen)
+        cfa_1000000_clicks.pop_out(screen)
+
+        cfa_IT.pop_out(screen)
+        cfa_sanic_popout.pop_out(screen)
 
     if mode == "menu":
         screen.blit(menu_screen, (0, 0))
@@ -393,14 +396,14 @@ while running:
             font_25.render("Нажмите чтобы вернуться в Меню", True, BLACK),
             (credits_back_button_rect.x + 15, credits_back_button_rect.y + 14),
         )
-
+        
     # Загрузка
     if isLoading:
         screen.fill(GREY)
         if loading_timer.done():
             mouse_click_sound.play()
             mode = next_mode
-            isLoading = False
+            isLoading = False 
 
     pygame.display.flip()
     clock.tick(FPS)

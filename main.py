@@ -10,6 +10,8 @@ mode = "menu"
 lang = ""
 
 GAME_FONT = "assets/fonts/Tiny5-Regular.ttf"
+VOLUME = 1.0
+VOLUME_STEP = 0.05
 GREY = (128, 128, 128)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -26,11 +28,18 @@ credits_bg_en = pygame.image.load("assets/images/UI/credits_en.png")
 credits_bg_ru = pygame.image.load("assets/images/UI/credits_ru.png")
 menu_screen = pygame.image.load("assets/images/UI/menu_screen.png")
 
+settings_bg = pygame.image.load("assets/images/UI/settings_bg.png")
+
 achievements_bg_ru = pygame.image.load("assets/images/UI/achievements_ru.png")
 achievements_bg_en = pygame.image.load("assets/images/UI/achievements_en.png")
 
 credits_back_button = pygame.image.load("assets/images/UI/button_long.png")
 achievements_back_button = pygame.image.load("assets/images/UI/button_long.png")
+settings_back_button = pygame.image.load("assets/images/UI/button_long.png")
+settings_back_button_rect = settings_back_button.get_rect(center=(W // 2, H - 40))
+achievements_back_button_rect = achievements_back_button.get_rect(
+    center=(W // 2, H - 55)
+)
 credits_back_button_rect = credits_back_button.get_rect(center=(W // 2, H - 40))
 achievements_back_button_rect = achievements_back_button.get_rect(
     center=(W // 2, H - 55)
@@ -38,11 +47,10 @@ achievements_back_button_rect = achievements_back_button.get_rect(
 
 byebye_nama_sound = pygame.mixer.Sound("assets/sounds/sfxes/namatama_byebye.mp3")
 click_sound = pygame.mixer.Sound("assets/sounds/sfxes/click_sound.mp3")
-click_sound.set_volume(0.4)
 mouse_click_sound = pygame.mixer.Sound("assets/sounds/sfxes/mouse_click.mp3")
-mouse_click_sound.set_volume(0.2)
 glitch_sound = pygame.mixer.Sound("assets/sounds/sfxes/screamer_glitch.mp3")
 sanic_sound = pygame.mixer.Sound("assets/sounds/sfxes/screamer_sanic.mp3")
+volume_changing_sound = pygame.mixer.Sound("assets/sounds/sfxes/volume_change_sound.mp3")
 
 class Namas:
     def __init__(self, name, path, chance):
@@ -130,7 +138,6 @@ class Achievements:
             "assets/images/UI/hidden_achi_ru.png"
         ).convert_alpha()
         self.rect = self.image.get_rect(topleft=(x, y))
-        
         self.unlocked = False
         self.show_popup = False
         self.timer = Timer(2000)
@@ -209,7 +216,8 @@ def add_clicks():
         show_boost, \
         clicking_text_timer, \
         seen_tamas, \
-        boost_pos
+        boost_pos, \
+        VOLUME 
     total_clicks += 1 * tama_on_screen.boost
     show_boost = True
     clicking_text_timer.reset()
@@ -238,11 +246,29 @@ def choose_tama(tamas):
         if roll <= current:
             return tama
 
+def update_volume():
+    for sound in [
+        click_sound,
+        mouse_click_sound,
+        glitch_sound,
+        sanic_sound,
+        cfa_collect_all_tamas.achievement_sound,
+        cfa_sanic_popout.achievement_sound,
+        cfa_IT.achievement_sound,
+        cfa_1000_clicks.achievement_sound,
+        cfa_10000_clicks.achievement_sound,
+        cfa_1000000_clicks.achievement_sound,
+        volume_changing_sound,
+    ]:
+        sound.set_volume(VOLUME)
 
 button_to_menu_from_game = Button(20, 720)
 button_to_game_from_menu = Button((W // 2) - (183 // 2), (H // 2) - (58 // 2))
-button_to_credits_from_menu = Button((W // 2) - (183 // 2), (H // 2) + 110)
+button_to_credits_from_menu = Button(800, 730)
 button_to_achievements_from_menu = Button((W // 2) - (183 // 2), (H // 2) + 40)
+button_to_settings_from_menu = Button((W // 2) - (183 // 2), (H // 2) + 110)
+sfx_button_plus = Button(289, 114)
+sfx_button_minus = Button(527, 114)
 
 clicking_text_timer = Timer(200)
 loading_timer = Timer(1)
@@ -253,6 +279,8 @@ tama_on_screen = tamas[0]
 total_clicks = 0
 show_boost = False
 next_mode = ""
+
+SFX_TEXT = "SFX"
 
 running = True
 while running:
@@ -290,8 +318,6 @@ while running:
                 isLoading = True
                 next_mode = "achievements"
                 loading_timer.reset()
-            if tama_on_screen.rect.collidepoint(event.pos) and mode == "game":
-                add_clicks()
             if (
                 achievements_back_button_rect.collidepoint(event.pos)
                 and mode == "achievements"
@@ -299,6 +325,36 @@ while running:
                 isLoading = True
                 next_mode = "menu"
                 loading_timer.reset()
+            if (
+                button_to_settings_from_menu.rect.collidepoint(event.pos)
+                and mode == "menu"
+            ):
+                isLoading = True
+                next_mode = "settings"
+                loading_timer.reset()
+            if (
+                settings_back_button_rect.collidepoint(event.pos)
+                and mode == "settings"
+            ):
+                isLoading = True
+                next_mode = "menu"
+                loading_timer.reset()
+            if (
+                sfx_button_plus.rect.collidepoint(event.pos)
+                and mode == "settings"
+            ):
+                VOLUME = min(1.0, VOLUME + VOLUME_STEP)
+                update_volume()
+                volume_changing_sound.play()
+            if (
+                sfx_button_minus.rect.collidepoint(event.pos)
+                and mode == "settings"
+            ):
+                VOLUME = max(0.0, VOLUME - VOLUME_STEP)
+                update_volume()
+                volume_changing_sound.play()
+            if tama_on_screen.rect.collidepoint(event.pos) and mode == "game":
+                add_clicks()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE and mode == "game":
                 add_clicks()
@@ -319,11 +375,7 @@ while running:
             cfa_IT.show_popup = True
             cfa_IT.timer.reset()
             glitch_sound.play()
-        if tama_on_screen.name == "sanic" and not cfa_sanic_popout.unlocked:
-            cfa_sanic_popout.unlocked = True
-            cfa_sanic_popout.show_popup = True
-            cfa_sanic_popout.timer.reset()
-            sanic_sound.play()
+
         if show_boost and mode == "game":
             screen.blit(
                 font_30.render(f"+{tama_on_screen.boost}", True, WHITE), boost_pos
@@ -359,6 +411,11 @@ while running:
         screen.blit(menu_screen, (0, 0))
         button_to_achievements_from_menu.draw(screen)
         button_to_game_from_menu.draw(screen)
+        button_to_settings_from_menu.draw(screen)
+        screen.blit(
+            font_30.render("Настройки", True, BLACK),
+            (button_to_settings_from_menu.x + 20, button_to_settings_from_menu.y + 10),
+        )
         screen.blit( 
             font_30.render("Достижения", True, BLACK),
             (button_to_game_from_menu.x + 5, button_to_game_from_menu.y + 80.5),
@@ -396,7 +453,28 @@ while running:
             font_25.render("Нажмите чтобы вернуться в Меню", True, BLACK),
             (credits_back_button_rect.x + 15, credits_back_button_rect.y + 14),
         )
-        
+    if mode == "settings":
+        screen.blit(settings_bg, (0, 0))
+        screen.blit(settings_back_button, settings_back_button_rect)
+        screen.blit(
+            font_25.render("Нажмите чтобы вернуться в Меню", True, BLACK),
+            (credits_back_button_rect.x + 15, credits_back_button_rect.y + 14),
+        )
+
+        screen.blit(
+            font_40.render(SFX_TEXT, True, BLACK),
+            (409 + 57.5, 50)
+        )
+        sfx_button_plus.draw(screen)
+        screen.blit(
+            font_40.render("+", True, BLACK),
+            (sfx_button_plus.rect.x + 80, sfx_button_plus.rect.y + 6)
+        )
+        sfx_button_minus.draw(screen)
+        screen.blit(
+            font_40.render("-", True, BLACK),
+            (sfx_button_minus.rect.x + 80, sfx_button_minus.rect.y + 6)
+        )
     # Загрузка
     if isLoading:
         screen.fill(GREY)

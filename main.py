@@ -250,7 +250,7 @@ loading_timer = Timer(1)
 isLoading = False
 seen_tamas = set()
 tama_on_screen = tamas[0]
-total_clicks = 990
+total_clicks = 0
 show_boost = False
 next_mode = ""
 

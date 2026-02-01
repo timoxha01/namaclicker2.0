@@ -4,6 +4,8 @@ import pygame
 pygame.init()
 pygame.mixer.init()
 
+print("Loading, please wait!")
+
 W, H = 1000, 800
 FPS = 60
 mode = "menu"
@@ -11,10 +13,22 @@ lang = ""
 
 GAME_FONT = "assets/fonts/Tiny5-Regular.ttf"
 VOLUME = 1.0
+VOLUME_SDTRACK = 1.0
 VOLUME_STEP = 0.05
 GREY = (128, 128, 128)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+SOUNDTRACKS = [
+
+    "assets/sounds/osts/GoldStandard_ost.mp3",
+    "assets/sounds/osts/Stardust_ost.mp3",
+    "assets/sounds/osts/Syntax_CNS_ost.mp3",
+    "assets/sounds/osts/TheDivide_ost.mp3",
+    "assets/sounds/osts/TheWorld'sGreatestGameShow2_ost.mp3"
+]
+
+MUSIC_END_EVENT = pygame.USEREVENT + 1
+pygame.mixer.music.set_endevent(MUSIC_END_EVENT)
 
 pygame.display.set_caption("NamaClicker 2.0")
 pygame.display.set_icon(pygame.image.load("assets/images/tamas/classic.png"))
@@ -33,10 +47,15 @@ settings_bg = pygame.image.load("assets/images/UI/settings_bg.png")
 achievements_bg_ru = pygame.image.load("assets/images/UI/achievements_ru.png")
 achievements_bg_en = pygame.image.load("assets/images/UI/achievements_en.png")
 
+volume_icon = pygame.image.load("assets/images/UI/volume_icon.png")
+
 credits_back_button = pygame.image.load("assets/images/UI/button_long.png")
 achievements_back_button = pygame.image.load("assets/images/UI/button_long.png")
+
 settings_back_button = pygame.image.load("assets/images/UI/button_long.png")
-settings_back_button_rect = settings_back_button.get_rect(center=(W // 2, H - 40))
+settings_back_button_rect = settings_back_button.get_rect(
+    center=(W // 2, H - 40)
+)
 achievements_back_button_rect = achievements_back_button.get_rect(
     center=(W // 2, H - 55)
 )
@@ -262,6 +281,12 @@ def update_volume():
     ]:
         sound.set_volume(VOLUME)
 
+def play_random_soundtrack():
+    track = random.choice(SOUNDTRACKS)
+    pygame.mixer.music.load(track)
+    pygame.mixer.music.set_volume(VOLUME_SDTRACK)
+    pygame.mixer.music.play()
+
 button_to_menu_from_game = Button(20, 720)
 button_to_game_from_menu = Button((W // 2) - (183 // 2), (H // 2) - (58 // 2))
 button_to_credits_from_menu = Button(800, 730)
@@ -269,76 +294,81 @@ button_to_achievements_from_menu = Button((W // 2) - (183 // 2), (H // 2) + 40)
 button_to_settings_from_menu = Button((W // 2) - (183 // 2), (H // 2) + 110)
 sfx_button_plus = Button(289, 114)
 sfx_button_minus = Button(527, 114)
+sdtrack_button_plus = Button(289, 275)
+sdtrack_button_minus = Button(527, 275)
 
 clicking_text_timer = Timer(200)
-loading_timer = Timer(1)
+cooldown_timer = Timer(1)
 
+current_music_credits = None
 isLoading = False
 seen_tamas = set()
 tama_on_screen = tamas[0]
-total_clicks = 0
+total_clicks = 990
 show_boost = False
 next_mode = ""
 
-SFX_TEXT = "SFX"
-
+print("Loading is done!")
 running = True
+play_random_soundtrack()
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             byebye_nama_sound.play()
             pygame.time.delay(int(byebye_nama_sound.get_length() * 1000))
             running = False
+        if event.type == MUSIC_END_EVENT:
+            play_random_soundtrack()
             # MouseButton действия:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if button_to_game_from_menu.rect.collidepoint(event.pos) and mode == "menu":
                 isLoading = True
                 next_mode = "game"
-                loading_timer.reset()
+                cooldown_timer.reset()
             if button_to_menu_from_game.rect.collidepoint(event.pos) and mode == "game":
                 isLoading = True
                 next_mode = "menu"
-                loading_timer.reset()
+                cooldown_timer.reset()
             if (
                 button_to_credits_from_menu.rect.collidepoint(event.pos)
                 and mode == "menu"
             ):
                 isLoading = True
                 next_mode = "credits"
-                loading_timer.reset()
+                cooldown_timer.reset()
 
             if credits_back_button_rect.collidepoint(event.pos) and mode == "credits":
                 isLoading = True
                 next_mode = "menu"
-                loading_timer.reset()
+                cooldown_timer.reset()
             if (
                 button_to_achievements_from_menu.rect.collidepoint(event.pos)
                 and mode == "menu"
             ):
                 isLoading = True
                 next_mode = "achievements"
-                loading_timer.reset()
+                cooldown_timer.reset()
             if (
                 achievements_back_button_rect.collidepoint(event.pos)
                 and mode == "achievements"
             ):
                 isLoading = True
                 next_mode = "menu"
-                loading_timer.reset()
+                cooldown_timer.reset()
             if (
                 button_to_settings_from_menu.rect.collidepoint(event.pos)
                 and mode == "menu"
             ):
                 isLoading = True
                 next_mode = "settings"
-                loading_timer.reset()
+                cooldown_timer.reset()
             if (
                 settings_back_button_rect.collidepoint(event.pos)
                 and mode == "settings"
             ):
                 isLoading = True
                 next_mode = "menu"
-                loading_timer.reset()
+                cooldown_timer.reset()
             if (
                 sfx_button_plus.rect.collidepoint(event.pos)
                 and mode == "settings"
@@ -352,6 +382,20 @@ while running:
             ):
                 VOLUME = max(0.0, VOLUME - VOLUME_STEP)
                 update_volume()
+                volume_changing_sound.play()
+            if (
+                sdtrack_button_plus.rect.collidepoint(event.pos)
+                and mode == "settings"
+            ):
+                VOLUME_SDTRACK = min(1.0, VOLUME_SDTRACK + VOLUME_STEP)
+                pygame.mixer.music.set_volume(VOLUME_SDTRACK)
+                volume_changing_sound.play()
+            if (
+                sdtrack_button_minus.rect.collidepoint(event.pos)
+                and mode == "settings"
+            ):
+                VOLUME_SDTRACK = max(0.0, VOLUME_SDTRACK - VOLUME_STEP)
+                pygame.mixer.music.set_volume(VOLUME_SDTRACK)
                 volume_changing_sound.play()
             if tama_on_screen.rect.collidepoint(event.pos) and mode == "game":
                 add_clicks()
@@ -375,7 +419,11 @@ while running:
             cfa_IT.show_popup = True
             cfa_IT.timer.reset()
             glitch_sound.play()
-
+        if tama_on_screen.name == "sanic" and not cfa_sanic_popout.unlocked:
+            cfa_sanic_popout.unlocked = True
+            cfa_sanic_popout.show_popup = True
+            cfa_sanic_popout.timer.reset()
+            sanic_sound.play()
         if show_boost and mode == "game":
             screen.blit(
                 font_30.render(f"+{tama_on_screen.boost}", True, WHITE), boost_pos
@@ -456,14 +504,20 @@ while running:
     if mode == "settings":
         screen.blit(settings_bg, (0, 0))
         screen.blit(settings_back_button, settings_back_button_rect)
+        screen.blit(volume_icon, (420 + 20, 57))
+        screen.blit(volume_icon, (400 + 20, 218))
         screen.blit(
             font_25.render("Нажмите чтобы вернуться в Меню", True, BLACK),
             (credits_back_button_rect.x + 15, credits_back_button_rect.y + 14),
         )
 
         screen.blit(
-            font_40.render(SFX_TEXT, True, BLACK),
-            (409 + 57.5, 50)
+            font_40.render("SFX", True, BLACK),
+            (409 + 57.5 + 20, 50)
+        )
+        screen.blit(
+            font_40.render("MUSIC", True, BLACK),
+            (409 + 36 + 20, 210)
         )
         sfx_button_plus.draw(screen)
         screen.blit(
@@ -475,13 +529,23 @@ while running:
             font_40.render("-", True, BLACK),
             (sfx_button_minus.rect.x + 80, sfx_button_minus.rect.y + 6)
         )
+        sdtrack_button_plus.draw(screen)
+        screen.blit(
+            font_40.render("+", True, BLACK),
+            (sdtrack_button_plus.rect.x + 80, sdtrack_button_plus.rect.y + 6)
+        )
+        sdtrack_button_minus.draw(screen)
+        screen.blit(
+            font_40.render("-", True, BLACK),
+            (sdtrack_button_minus.rect.x + 80, sdtrack_button_minus.rect.y + 6)
+        )
     # Загрузка
     if isLoading:
         screen.fill(GREY)
-        if loading_timer.done():
+        if cooldown_timer.done():
             mouse_click_sound.play()
             mode = next_mode
-            isLoading = False 
+            isLoading = False
 
     pygame.display.flip()
     clock.tick(FPS)

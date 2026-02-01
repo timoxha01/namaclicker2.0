@@ -137,7 +137,7 @@ class SongsPopouts:
 
         self.visible = False
         self.hiding = False
-        self.timer = Timer(1000)
+        self.timer = Timer(3000)
 
     def show(self):
         self.scale = 0.0
@@ -149,7 +149,6 @@ class SongsPopouts:
         if not self.visible:
             return
 
-        # Появление
         if not self.hiding and self.scale < self.target_scale:
             self.scale += self.speed
             if self.scale >= self.target_scale:
@@ -157,11 +156,9 @@ class SongsPopouts:
                 self.timer.reset()
             return
 
-        # Переход в скрытие
         if not self.hiding and self.timer.done():
             self.hiding = True
 
-        # Исчезновение
         if self.hiding:
             self.scale -= self.speed
             if self.scale <= 0:

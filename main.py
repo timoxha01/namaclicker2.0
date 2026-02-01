@@ -4,7 +4,7 @@ import pygame
 pygame.init()
 pygame.mixer.init()
 
-print("Loading, please wait!")
+print("Loading...")
 
 W, H = 1000, 800
 FPS = 60
@@ -125,6 +125,59 @@ class Timer:
     def reset(self):
         self.start = pygame.time.get_ticks()
 
+class SongsPopouts:
+    def __init__(self, image_path, x=11, y=614):
+        self.base_image = pygame.image.load(image_path).convert_alpha()
+        self.x = x
+        self.y = y
+
+        self.scale = 0.0
+        self.target_scale = 1.0
+        self.speed = 0.15
+
+        self.visible = False
+        self.hiding = False
+        self.timer = Timer(3500)
+
+    def show(self):
+        self.scale = 0.0
+        self.visible = True
+        self.hiding = False
+        self.timer.reset()
+
+    def update(self):
+        if not self.visible:
+            return
+
+        # Появление
+        if not self.hiding and self.scale < self.target_scale:
+            self.scale += self.speed
+            if self.scale >= self.target_scale:
+                self.scale = self.target_scale
+                self.timer.reset()
+            return
+
+        # Переход в скрытие
+        if not self.hiding and self.timer.done():
+            self.hiding = True
+
+        # Исчезновение
+        if self.hiding:
+            self.scale -= self.speed
+            if self.scale <= 0:
+                self.scale = 0
+                self.visible = False
+                self.hiding = False
+
+    def draw(self, screen):
+        if not self.visible or self.scale <= 0:
+            return
+
+        w = int(self.base_image.get_width() * self.scale)
+        h = int(self.base_image.get_height() * self.scale)
+
+        img = pygame.transform.smoothscale(self.base_image, (w, h))
+        screen.blit(img, (self.x, self.y))
 
 class Button:
     def __init__(self, x, y):
@@ -209,6 +262,15 @@ cfa_1000_clicks = Achievements("Набрать 1000 кликов", 65, 382)
 cfa_10000_clicks = Achievements("Набрать 10000 кликов", 372, 382)
 cfa_1000000_clicks = Achievements("Набрать 1000000 кликов", 679, 382)
 
+song_popouts = {
+    "GoldStandard_ost.mp3": SongsPopouts("assets/images/UI/GoldStandard_SongCard.png"),
+    "Stardust_ost.mp3": SongsPopouts("assets/images/UI/Stardust_SongCard.png"),
+    "Syntax_CNS_ost.mp3": SongsPopouts("assets/images/UI/SyntaxCNS_SongCard.png"),
+    "TheDivide_ost.mp3": SongsPopouts("assets/images/UI/TheDivide_SongCard.png"),
+    "TheWorld'sGreatestGameShow2.mp3": SongsPopouts("assets/images/UI/TheWorld'sGreatestGameShow2_SongCard.png")
+}
+
+
 
 tamas = [
     Namas("classic", "assets/images/tamas/classic.png", 1.0),
@@ -227,7 +289,6 @@ tamas = [
     Namas("glitch", "assets/images/tamas/glitch_ee.png", 0.001),
 ]
 
-
 def add_clicks():
     global \
         tama_on_screen, \
@@ -235,8 +296,7 @@ def add_clicks():
         show_boost, \
         clicking_text_timer, \
         seen_tamas, \
-        boost_pos, \
-        VOLUME 
+        boost_pos
     total_clicks += 1 * tama_on_screen.boost
     show_boost = True
     clicking_text_timer.reset()
@@ -287,6 +347,10 @@ def play_random_soundtrack():
     pygame.mixer.music.set_volume(VOLUME_SDTRACK)
     pygame.mixer.music.play()
 
+    filename = track.split("/")[-1]
+    if filename in song_popouts:
+        song_popouts[filename].show()
+
 button_to_menu_from_game = Button(20, 720)
 button_to_game_from_menu = Button((W // 2) - (183 // 2), (H // 2) - (58 // 2))
 button_to_credits_from_menu = Button(800, 730)
@@ -304,11 +368,11 @@ current_music_credits = None
 isLoading = False
 seen_tamas = set()
 tama_on_screen = tamas[0]
-total_clicks = 990
+total_clicks = 0
 show_boost = False
 next_mode = ""
 
-print("Loading is done!")
+print("Game Loaded, Booting up...")
 running = True
 play_random_soundtrack()
 while running:
@@ -539,6 +603,9 @@ while running:
             font_40.render("-", True, BLACK),
             (sdtrack_button_minus.rect.x + 80, sdtrack_button_minus.rect.y + 6)
         )
+    for pop in song_popouts.values():
+        pop.update()
+        pop.draw(screen)
     # Загрузка
     if isLoading:
         screen.fill(GREY)
@@ -550,4 +617,5 @@ while running:
     pygame.display.flip()
     clock.tick(FPS)
 
+print("Game is quitting")
 pygame.quit()

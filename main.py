@@ -12,19 +12,18 @@ mode = "menu"
 lang = ""
 
 GAME_FONT = "assets/fonts/Tiny5-Regular.ttf"
-VOLUME = 1.0
-VOLUME_SDTRACK = 1.0
+VOLUME = 0.5
+VOLUME_SDTRACK = 0.5
 VOLUME_STEP = 0.05
 GREY = (128, 128, 128)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 SOUNDTRACKS = [
-
     "assets/sounds/osts/GoldStandard_ost.mp3",
     "assets/sounds/osts/Stardust_ost.mp3",
     "assets/sounds/osts/Syntax_CNS_ost.mp3",
     "assets/sounds/osts/TheDivide_ost.mp3",
-    "assets/sounds/osts/TheWorld'sGreatestGameShow2_ost.mp3"
+    "assets/sounds/osts/TheWorldsGreatestGameShow2_ost.mp3"
 ]
 
 MUSIC_END_EVENT = pygame.USEREVENT + 1
@@ -70,6 +69,8 @@ mouse_click_sound = pygame.mixer.Sound("assets/sounds/sfxes/mouse_click.mp3")
 glitch_sound = pygame.mixer.Sound("assets/sounds/sfxes/screamer_glitch.mp3")
 sanic_sound = pygame.mixer.Sound("assets/sounds/sfxes/screamer_sanic.mp3")
 volume_changing_sound = pygame.mixer.Sound("assets/sounds/sfxes/volume_change_sound.mp3")
+purchase_success = pygame.mixer.Sound("assets/sounds/sfxes/purchase_success.mp3")
+purchase_failed = pygame.mixer.Sound("assets/sounds/sfxes/purchase_failed.mp3")
 
 class Namas:
     def __init__(self, name, path, chance):
@@ -79,7 +80,6 @@ class Namas:
         self.image = self.original_image
         self.rect = self.image.get_rect(center=self.pos)
         self.chance = chance
-        self.boost = 1
         self.scale = 1.0
         self.target_scale = 1.0
         self.scale_speed = 0.15
@@ -137,7 +137,7 @@ class SongsPopouts:
 
         self.visible = False
         self.hiding = False
-        self.timer = Timer(3500)
+        self.timer = Timer(1000)
 
     def show(self):
         self.scale = 0.0
@@ -267,7 +267,7 @@ song_popouts = {
     "Stardust_ost.mp3": SongsPopouts("assets/images/UI/Stardust_SongCard.png"),
     "Syntax_CNS_ost.mp3": SongsPopouts("assets/images/UI/SyntaxCNS_SongCard.png"),
     "TheDivide_ost.mp3": SongsPopouts("assets/images/UI/TheDivide_SongCard.png"),
-    "TheWorld'sGreatestGameShow2.mp3": SongsPopouts("assets/images/UI/TheWorld'sGreatestGameShow2_SongCard.png")
+    "TheWorldsGreatestGameShow2_ost.mp3": SongsPopouts("assets/images/UI/TheWorldsGreatestGameShow2_SongCard.png")
 }
 
 
@@ -296,8 +296,9 @@ def add_clicks():
         show_boost, \
         clicking_text_timer, \
         seen_tamas, \
-        boost_pos
-    total_clicks += 1 * tama_on_screen.boost
+        boost_pos, \
+        boost
+    total_clicks += 1 * boost
     show_boost = True
     clicking_text_timer.reset()
     tama_on_screen = choose_tama(tamas)
@@ -360,24 +361,31 @@ sfx_button_plus = Button(289, 114)
 sfx_button_minus = Button(527, 114)
 sdtrack_button_plus = Button(289, 275)
 sdtrack_button_minus = Button(527, 275)
+button_boost = Button(20, 650)
 
 clicking_text_timer = Timer(200)
 cooldown_timer = Timer(1)
 
+required_clicks_for_boost = 250
 current_music_credits = None
 isLoading = False
 seen_tamas = set()
 tama_on_screen = tamas[0]
+
 total_clicks = 0
+boost = 1
+
 show_boost = False
 next_mode = ""
 
 print("Game Loaded, Booting up...")
-running = True
+
 play_random_soundtrack()
+running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            pygame.mixer.music.stop()
             byebye_nama_sound.play()
             pygame.time.delay(int(byebye_nama_sound.get_length() * 1000))
             running = False
@@ -461,6 +469,17 @@ while running:
                 VOLUME_SDTRACK = max(0.0, VOLUME_SDTRACK - VOLUME_STEP)
                 pygame.mixer.music.set_volume(VOLUME_SDTRACK)
                 volume_changing_sound.play()
+            if (
+                button_boost.rect.collidepoint(event.pos)
+                and mode == "game"
+            ):
+                if total_clicks >= required_clicks_for_boost:
+                    total_clicks -= required_clicks_for_boost
+                    boost += 1
+                    required_clicks_for_boost *= 2
+                    purchase_success.play()
+                else:
+                    purchase_failed.play()
             if tama_on_screen.rect.collidepoint(event.pos) and mode == "game":
                 add_clicks()
         if event.type == pygame.KEYDOWN:
@@ -469,6 +488,15 @@ while running:
 
     if mode == "game":
         screen.fill(GREY)
+        button_boost.draw(screen)
+        screen.blit(
+            font_30.render(f"Буст: +{boost + 1}", True, BLACK),
+            (55, 650)
+        )
+        screen.blit(
+            font_25.render(f"Цена: {required_clicks_for_boost}", True, BLACK),
+            (56, 676)
+        )
         button_to_menu_from_game.draw(screen)
         screen.blit(
             font_30.render("Меню", True, BLACK),
@@ -490,7 +518,7 @@ while running:
             sanic_sound.play()
         if show_boost and mode == "game":
             screen.blit(
-                font_30.render(f"+{tama_on_screen.boost}", True, WHITE), boost_pos
+                font_30.render(f"+{boost}", True, WHITE), boost_pos
             )
             if clicking_text_timer.done() and mode == "game":
                 show_boost = False
@@ -606,6 +634,7 @@ while running:
     for pop in song_popouts.values():
         pop.update()
         pop.draw(screen)
+
     # Загрузка
     if isLoading:
         screen.fill(GREY)

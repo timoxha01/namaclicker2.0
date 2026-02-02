@@ -52,15 +52,22 @@ credits_back_button = pygame.image.load("assets/images/UI/button_long.png")
 achievements_back_button = pygame.image.load("assets/images/UI/button_long.png")
 
 settings_back_button = pygame.image.load("assets/images/UI/button_long.png")
+
+NamaCoin_image = pygame.image.load("assets/images/UI/NamaCoin.png")
+angle_frame = pygame.image.load("assets/images/UI/angle_frame.png")
+
+minigame_tutorial_ru = pygame.image.load("assets/images/UI/minigame_tutorial_ru.png")
+minigame_tutorial_en = pygame.image.load("assets/images/UI/minigame_tutorial_en.png") 
+
 settings_back_button_rect = settings_back_button.get_rect(
-    center=(W // 2, H - 40)
+    center=(W // 2, H - 50)
 )
 achievements_back_button_rect = achievements_back_button.get_rect(
     center=(W // 2, H - 55)
 )
-credits_back_button_rect = credits_back_button.get_rect(center=(W // 2, H - 40))
+credits_back_button_rect = credits_back_button.get_rect(center=(W // 2, H - 50))
 achievements_back_button_rect = achievements_back_button.get_rect(
-    center=(W // 2, H - 55)
+    center=(W // 2, H - 50)
 )
 
 byebye_nama_sound = pygame.mixer.Sound("assets/sounds/sfxes/namatama_byebye.mp3")
@@ -113,7 +120,6 @@ class Namas:
         self.target_scale = 1.0
         self.pulsing = True
 
-
 class Timer:
     def __init__(self, duration):
         self.duration = duration
@@ -137,7 +143,7 @@ class SongsPopouts:
 
         self.visible = False
         self.hiding = False
-        self.timer = Timer(3000)
+        self.timer = Timer(1500)
 
     def show(self):
         self.scale = 0.0
@@ -271,6 +277,7 @@ song_popouts = {
 
 tamas = [
     Namas("classic", "assets/images/tamas/classic.png", 1.0),
+    Namas("like", "assets/images/tamas/like.png", 0.7),
     Namas("search", "assets/images/tamas/search.png", 0.5),
     Namas("tea", "assets/images/tamas/tea.png", 0.3),
     Namas("bob", "assets/images/tamas/bob.png", 0.2),
@@ -339,8 +346,8 @@ def update_volume():
     ]:
         sound.set_volume(VOLUME)
 
-def play_random_soundtrack():
-    track = random.choice(SOUNDTRACKS)
+def play_next_soundtrack():
+    track = get_next_track()
     pygame.mixer.music.load(track)
     pygame.mixer.music.set_volume(VOLUME_SDTRACK)
     pygame.mixer.music.play()
@@ -348,6 +355,14 @@ def play_random_soundtrack():
     filename = track.split("/")[-1]
     if filename in song_popouts:
         song_popouts[filename].show()
+
+music_loop = []
+def get_next_track():
+    global music_loop
+    if not music_loop:
+        music_loop = SOUNDTRACKS.copy()
+        random.shuffle(music_loop)
+    return music_loop.pop()
 
 button_to_menu_from_game = Button(20, 720)
 button_to_game_from_menu = Button((W // 2) - (183 // 2), (H // 2) - (58 // 2))
@@ -359,6 +374,10 @@ sfx_button_minus = Button(527, 114)
 sdtrack_button_plus = Button(289, 275)
 sdtrack_button_minus = Button(527, 275)
 button_boost = Button(20, 650)
+button_to_minigame_from_game = Button(20, 580)
+button_back_to_game_from_minigametutorial = Button((500 - 183) - (183 // 2) + 70, H - 65)
+button_to_minigame_from_tutorial = Button(500 - (183 // 2) + 90, H - 65)
+button_back_from_minigame = Button(20, 720)
 
 clicking_text_timer = Timer(200)
 cooldown_timer = Timer(1)
@@ -371,13 +390,14 @@ tama_on_screen = tamas[0]
 
 total_clicks = 0
 boost = 1
+NamaCoins = 0
 
 show_boost = False
 next_mode = ""
 
 print("Game Loaded, Booting up...")
 
-play_random_soundtrack()
+play_next_soundtrack()
 running = True
 while running:
     for event in pygame.event.get():
@@ -387,7 +407,7 @@ while running:
             pygame.time.delay(int(byebye_nama_sound.get_length() * 1000))
             running = False
         if event.type == MUSIC_END_EVENT:
-            play_random_soundtrack()
+            play_next_soundtrack()
             # MouseButton действия:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if button_to_game_from_menu.rect.collidepoint(event.pos) and mode == "menu":
@@ -405,7 +425,6 @@ while running:
                 isLoading = True
                 next_mode = "credits"
                 cooldown_timer.reset()
-
             if credits_back_button_rect.collidepoint(event.pos) and mode == "credits":
                 isLoading = True
                 next_mode = "menu"
@@ -467,6 +486,34 @@ while running:
                 pygame.mixer.music.set_volume(VOLUME_SDTRACK)
                 volume_changing_sound.play()
             if (
+                button_to_minigame_from_game.rect.collidepoint(event.pos)
+                and mode == "game"
+            ):
+                isLoading = True
+                next_mode = "tutorial_minigame"
+                cooldown_timer.reset()
+            if (
+                button_back_to_game_from_minigametutorial.rect.collidepoint(event.pos)
+                and mode == "tutorial_minigame"
+            ):
+                isLoading = True
+                next_mode = "game"
+                cooldown_timer.reset()
+            if (
+                button_to_minigame_from_tutorial.rect.collidepoint(event.pos)
+                and mode == "tutorial_minigame"
+            ):
+                isLoading = True
+                next_mode = "minigame"
+                cooldown_timer.reset()
+            if (
+                button_back_from_minigame.rect.collidepoint(event.pos)
+                and mode == "minigame"
+            ):
+                isLoading = True
+                next_mode = "game"
+                cooldown_timer.reset()
+            if (
                 button_boost.rect.collidepoint(event.pos)
                 and mode == "game"
             ):
@@ -486,6 +533,11 @@ while running:
     if mode == "game":
         screen.fill(GREY)
         button_boost.draw(screen)
+        button_to_minigame_from_game.draw(screen)
+        screen.blit(
+            font_25.render("Мини-игра", True, BLACK),
+            (button_to_minigame_from_game.x + 25, button_to_minigame_from_game.y + 15)
+        )
         screen.blit(
             font_30.render(f"Буст: +{boost + 1}", True, BLACK),
             (55, 650)
@@ -588,7 +640,8 @@ while running:
         screen.blit(credits_back_button, credits_back_button_rect)
         screen.blit(
             font_25.render("Нажмите чтобы вернуться в Меню", True, BLACK),
-            (credits_back_button_rect.x + 15, credits_back_button_rect.y + 14),
+            (credits_back_button_rect.x + 15,
+            credits_back_button_rect.y + 14),
         )
     if mode == "settings":
         screen.blit(settings_bg, (0, 0))
@@ -628,6 +681,25 @@ while running:
             font_40.render("-", True, BLACK),
             (sdtrack_button_minus.rect.x + 80, sdtrack_button_minus.rect.y + 6)
         )
+    if mode == "tutorial_minigame":
+        screen.blit(minigame_tutorial_ru, (0, 0))
+        button_back_to_game_from_minigametutorial.draw(screen)
+        button_to_minigame_from_tutorial.draw(screen)
+        screen.blit(
+            font_30.render("Назад", True, BLACK),
+            (button_back_to_game_from_minigametutorial.x + 50, button_back_to_game_from_minigametutorial.y + 10)
+        )
+        screen.blit(
+            font_30.render("Играть", True, BLACK),
+            (button_to_minigame_from_tutorial.x + 50, button_to_minigame_from_tutorial.y + 10)
+        )
+    if mode == "minigame":
+        screen.fill(GREY)
+        button_back_from_minigame.draw(screen)
+        screen.blit(
+            font_30.render("Назад", True, BLACK),
+            ((button_back_from_minigame.x + 52.5, button_back_from_minigame.y + 10.5),)
+        )
     for pop in song_popouts.values():
         pop.update()
         pop.draw(screen)
@@ -639,6 +711,19 @@ while running:
             mouse_click_sound.play()
             mode = next_mode
             isLoading = False
+
+    if (
+        mode != "menu"
+        and mode != "credits"
+        and mode != "settings"
+        and mode != "achievements"
+    ):
+        screen.blit(angle_frame, (781, 0))
+        screen.blit(NamaCoin_image, (792, 7))
+        screen.blit(
+            font_30.render(f": {NamaCoins}", True, BLACK),
+            (865, 20)
+        )
 
     pygame.display.flip()
     clock.tick(FPS)

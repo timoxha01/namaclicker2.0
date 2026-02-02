@@ -120,29 +120,6 @@ class Namas:
         self.target_scale = 1.0
         self.pulsing = True
 
-class NamaPlayer():
-    def __init__(self):
-        self.x = 25
-        self.y = 523
-        self.original_image = pygame.image.load("assets/images/tamas/classic.png")
-        self.image = pygame.transform.scale(self.original_image, (144, 144))
-        self.lostSound = pygame.mixer.Sound("assets/sounds/sfxes/lost_sound.mp3")
-        self.rect = self.image.get_rect()
-        self.rect.topleft = (self.x, self.y)
-        self.isDamaged = False
-
-    def get_damage(self):
-        if self.isDamaged == True:
-            self.lostSound.play()
-            self.x = 25
-            self.y = 523
-            self.isDamaged = False
-
-    def draw(self, screen):
-        self.rect.topleft = (self.x, self.y)
-        screen.blit(self.image, self.rect)
-
-
 class Timer:
     def __init__(self, duration):
         self.duration = duration
@@ -279,8 +256,6 @@ class Achievements:
         self.sound_played = False 
         self.timer.reset()
 
-
-        
 cfa_collect_all_tamas = Achievements("Собрать все NamaTama", 64, 80)
 cfa_sanic_popout = Achievements("Встретить Sanic", 372, 80)
 cfa_IT = Achievements("Встретить ...", 679, 80)
@@ -410,8 +385,6 @@ current_music_credits = None
 isLoading = False
 seen_tamas = set()
 tama_on_screen = tamas[0]
-
-namaPlayer = NamaPlayer()
 
 total_clicks = 0
 boost = 1
@@ -554,14 +527,6 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE and mode == "game":
                 add_clicks()
-    
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_LEFT] and mode == "minigame":
-        namaPlayer.x -= 2
-    if keys[pygame.K_RIGHT] and mode == "minigame":
-        namaPlayer.x += 2
-
-    namaPlayer.x = max(0, min(1000 - namaPlayer.rect.width, namaPlayer.x))
 
     # DRAW MODE
     if mode == "game":
@@ -734,7 +699,6 @@ while running:
             font_30.render("Назад", True, BLACK),
             ((button_back_from_minigame.x + 52.5, button_back_from_minigame.y + 10.5),)
         )
-        namaPlayer.draw(screen)
 
     for pop in song_popouts.values():
         pop.update()

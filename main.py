@@ -293,6 +293,18 @@ class Coin:
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 
+class BoostCoin(Coin):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.image.load(
+            "assets/images/UI/NamaCoin_boost.png"
+        ).convert_alpha()
+        self.rect = self.image.get_rect(
+            center=(
+                random.randint(50, W - 50),
+                random.randint(50, H - 50),
+            )
+        )
 
 cfa_collect_all_tamas = Achievements("Собрать все NamaTama", 64, 80)
 cfa_sanic_popout = Achievements("Встретить Sanic", 372, 80)
@@ -423,6 +435,10 @@ current_music_credits = None
 isLoading = False
 seen_tamas = set()
 tama_on_screen = tamas[0]
+
+boost_coin = 1
+coin_boost_timer = Timer(5000)  
+coin_boost_active = False
 
 total_clicks = 0
 boost = 1
@@ -566,11 +582,6 @@ while running:
 
     namaPlayer.x = max(0, min(1000 - namaPlayer.rect.width, namaPlayer.x))
     namaPlayer.y = max(0, min(800 - namaPlayer.rect.height, namaPlayer.y))
-
-    if mode == "minigame":
-        if coin_spawn_timer.done() and len(coins) < MAX_COINS:
-            coins.append(Coin())
-            coin_spawn_timer.reset()
 
     # DRAW MODE
     if mode == "game":
@@ -732,15 +743,34 @@ while running:
             ((button_back_from_minigame.x + 52.5, button_back_from_minigame.y + 10.5),)
         )
         namaPlayer.draw(screen)
+
         for coin in coins:
             coin.draw(screen)
 
-    for coin in coins[:]:
-        if namaPlayer.rect.colliderect(coin.rect):
-            coins.remove(coin)
-            NamaCoins += 1
-            coins_collecting.play()
-            
+        if coin_spawn_timer.done() and len(coins) < MAX_COINS:
+            if random.random() < 0.2:
+                    coins.append(BoostCoin())
+            else:
+                coins.append(Coin())
+            coin_spawn_timer.reset()
+
+        for coin in coins[:]:
+            if namaPlayer.rect.colliderect(coin.rect):
+                coins.remove(coin)
+
+                if isinstance(coin, BoostCoin):
+                    boost_coin = 2
+                    coin_boost_active = True
+                    coin_boost_timer.reset()
+                else:
+                    NamaCoins += 1 * boost_coin
+
+                coins_collecting.play()
+    
+    if coin_boost_active and coin_boost_timer.done():
+        boost_coin = 1
+        coin_boost_active = False
+
     for pop in song_popouts.values():
         pop.update()
         pop.draw(screen)

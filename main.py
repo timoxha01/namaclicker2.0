@@ -8,7 +8,7 @@ print("Loading...")
 
 W, H = 1000, 800
 FPS = 60
-mode = "minigame"
+mode = "menu"
 lang = ""
 
 GAME_FONT = "assets/fonts/Tiny5-Regular.ttf"
@@ -54,11 +54,13 @@ achievements_back_button = pygame.image.load("assets/images/UI/button_long.png")
 settings_back_button = pygame.image.load("assets/images/UI/button_long.png")
 
 NamaCoin_image = pygame.image.load("assets/images/UI/NamaCoin.png")
-angle_frame = pygame.image.load("assets/images/UI/angle_frame.png")
+angle_frame = pygame.image.load("assets/images/UI/angle_frame.png").convert_alpha()
 
 field_bg = pygame.image.load("assets/images/UI/greenfield.png")
 
 pickable_namacoin = pygame.image.load("assets/images/UI/NamaCoin.png")
+
+locked_button_gfield = pygame.image.load("assets/images/UI/locked_button_1000.png").convert_alpha()
 settings_back_button_rect = settings_back_button.get_rect(
     center=(W // 2, H - 50)
 )
@@ -167,7 +169,7 @@ class SongsPopouts:
 
         self.visible = False
         self.hiding = False
-        self.timer = Timer(1500)
+        self.timer = Timer(2500)
 
     def show(self):
         self.scale = 0.0
@@ -423,6 +425,8 @@ sdtrack_button_minus = Button(527, 275)
 button_boost = Button(20, 650)
 button_to_minigame_from_game = Button(20, 580)
 button_back_from_minigame = Button(20, 720)
+button_to_shelf_from_game = Button(800, 730)
+button_back_from_shelf = Button(20, 720)
 
 clicking_text_timer = Timer(200)
 cooldown_timer = Timer(1)
@@ -440,7 +444,7 @@ boost_coin = 1
 coin_boost_timer = Timer(5000)  
 coin_boost_active = False
 
-total_clicks = 0
+total_clicks = 990
 boost = 1
 NamaCoins = 0
 
@@ -543,12 +547,29 @@ while running:
                 button_to_minigame_from_game.rect.collidepoint(event.pos)
                 and mode == "game"
             ):
-                isLoading = True
-                next_mode = "minigame"
-                cooldown_timer.reset()
+                if total_clicks >= 1000:
+                    isLoading = True
+                    next_mode = "minigame"
+                    cooldown_timer.reset()
+                else:
+                    continue
             if (
                 button_back_from_minigame.rect.collidepoint(event.pos)
                 and mode == "minigame"
+            ):
+                isLoading = True
+                next_mode = "game"
+                cooldown_timer.reset()
+            if (
+                button_to_shelf_from_game.rect.collidepoint(event.pos)
+                and mode == "game"
+            ):
+                isLoading = True
+                next_mode = "shelf"
+                cooldown_timer.reset()
+            if (
+                button_back_from_shelf.rect.collidepoint(event.pos)
+                and mode == "shelf"
             ):
                 isLoading = True
                 next_mode = "game"
@@ -587,11 +608,21 @@ while running:
     if mode == "game":
         screen.fill(GREY)
         button_boost.draw(screen)
+        button_to_shelf_from_game.draw(screen)
         button_to_minigame_from_game.draw(screen)
+        screen.blit(
+            font_30.render("Полка", True, BLACK),
+            (850, 740)
+        )
         screen.blit(
             font_25.render("Зелёное поле", True, BLACK),
             (button_to_minigame_from_game.x + 16, button_to_minigame_from_game.y + 15)
         )
+        if total_clicks < 1000:
+            screen.blit(
+                locked_button_gfield,
+                (button_to_minigame_from_game.x, button_to_minigame_from_game.y)
+            )
         screen.blit(
             font_30.render(f"Буст: +{boost + 1}", True, BLACK),
             (55, 650)
@@ -767,6 +798,13 @@ while running:
 
                 coins_collecting.play()
     
+    if mode == "shelf":
+        screen.fill(GREY)
+        button_back_from_shelf.draw(screen)
+        screen.blit(
+            font_30.render("Назад", True, BLACK),
+            ((button_back_from_shelf.x + 52.5, button_back_from_shelf.y + 10.5),)
+        )
     if coin_boost_active and coin_boost_timer.done():
         boost_coin = 1
         coin_boost_active = False
@@ -788,6 +826,7 @@ while running:
         and mode != "credits"
         and mode != "settings"
         and mode != "achievements"
+        and total_clicks >= 1000
     ):
         screen.blit(angle_frame, (781, 0))
         screen.blit(NamaCoin_image, (792, 7))
@@ -801,3 +840,5 @@ while running:
 
 print("Game is quitting")
 pygame.quit()
+
+#* Сделать popout подказки, напр. когда игрок достиг 1000 кликов, показать что он может пойти на ферму и другое

@@ -56,9 +56,9 @@ settings_back_button = pygame.image.load("assets/images/UI/button_long.png")
 NamaCoin_image = pygame.image.load("assets/images/UI/NamaCoin.png")
 angle_frame = pygame.image.load("assets/images/UI/angle_frame.png")
 
-minigame_tutorial_ru = pygame.image.load("assets/images/UI/minigame_tutorial_ru.png")
-minigame_tutorial_en = pygame.image.load("assets/images/UI/minigame_tutorial_en.png") 
+field_bg = pygame.image.load("assets/images/UI/greenfield.png")
 
+pickable_namacoin = pygame.image.load("assets/images/UI/NamaCoin.png")
 settings_back_button_rect = settings_back_button.get_rect(
     center=(W // 2, H - 50)
 )
@@ -78,6 +78,7 @@ sanic_sound = pygame.mixer.Sound("assets/sounds/sfxes/screamer_sanic.mp3")
 volume_changing_sound = pygame.mixer.Sound("assets/sounds/sfxes/volume_change_sound.mp3")
 purchase_success = pygame.mixer.Sound("assets/sounds/sfxes/purchase_success.mp3")
 purchase_failed = pygame.mixer.Sound("assets/sounds/sfxes/purchase_failed.mp3")
+coins_collecting = pygame.mixer.Sound("assets/sounds/sfxes/NamaCoins_collecting.mp3")
 
 class Namas:
     def __init__(self, name, path, chance):
@@ -119,6 +120,29 @@ class Namas:
         self.scale = 0.85
         self.target_scale = 1.0
         self.pulsing = True
+
+class NamaPlayer():
+    def __init__(self):
+        self.x = 25
+        self.y = 523
+        self.original_image = pygame.image.load("assets/images/tamas/classic.png")
+        self.image = pygame.transform.scale(self.original_image, (144, 144))
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (self.x, self.y)
+        self.isDamaged = False
+
+    def get_damage(self):
+        if self.isDamaged == True:
+            self.lostSound.play()
+            self.x = 25
+            self.y = 523
+            self.isDamaged = False
+
+    def draw(self, screen):
+        self.rect.topleft = (self.x, self.y)
+        screen.blit(self.image, self.rect)
+
+namaPlayer = NamaPlayer()
 
 class Timer:
     def __init__(self, duration):
@@ -256,6 +280,20 @@ class Achievements:
         self.sound_played = False 
         self.timer.reset()
 
+class Coin:
+    def __init__(self):
+        self.image = pickable_namacoin
+        self.rect = self.image.get_rect(
+            center=(
+                random.randint(50, W - 50),
+                random.randint(50, H - 50),
+            )
+        )
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+
 cfa_collect_all_tamas = Achievements("Собрать все NamaTama", 64, 80)
 cfa_sanic_popout = Achievements("Встретить Sanic", 372, 80)
 cfa_IT = Achievements("Встретить ...", 679, 80)
@@ -270,8 +308,6 @@ song_popouts = {
     "TheDivide_ost.mp3": SongsPopouts("assets/images/UI/TheDivide_SongCard.png"),
     "TheWorldsGreatestGameShow2_ost.mp3": SongsPopouts("assets/images/UI/TheWorldsGreatestGameShow2_SongCard.png")
 }
-
-
 
 tamas = [
     Namas("classic", "assets/images/tamas/classic.png", 1.0),
@@ -341,6 +377,7 @@ def update_volume():
         cfa_10000_clicks.achievement_sound,
         cfa_1000000_clicks.achievement_sound,
         volume_changing_sound,
+        namatama_byebye,
     ]:
         sound.set_volume(VOLUME)
 
@@ -373,13 +410,14 @@ sdtrack_button_plus = Button(289, 275)
 sdtrack_button_minus = Button(527, 275)
 button_boost = Button(20, 650)
 button_to_minigame_from_game = Button(20, 580)
-button_back_to_game_from_minigametutorial = Button((500 - 183) - (183 // 2) + 70, H - 65)
-button_to_minigame_from_tutorial = Button(500 - (183 // 2) + 90, H - 65)
 button_back_from_minigame = Button(20, 720)
 
 clicking_text_timer = Timer(200)
 cooldown_timer = Timer(1)
 
+coins = []
+coin_spawn_timer = Timer(2000)  # каждые 2 секунды
+MAX_COINS = 5
 required_clicks_for_boost = 250
 current_music_credits = None
 isLoading = False
@@ -390,12 +428,14 @@ total_clicks = 0
 boost = 1
 NamaCoins = 0
 
+greens_in_bag = 0
+
 show_boost = False
 next_mode = ""
 
+play_next_soundtrack()
 print("Game Loaded, Booting up...")
 
-play_next_soundtrack()
 running = True
 while running:
     for event in pygame.event.get():
@@ -488,20 +528,6 @@ while running:
                 and mode == "game"
             ):
                 isLoading = True
-                next_mode = "tutorial_minigame"
-                cooldown_timer.reset()
-            if (
-                button_back_to_game_from_minigametutorial.rect.collidepoint(event.pos)
-                and mode == "tutorial_minigame"
-            ):
-                isLoading = True
-                next_mode = "game"
-                cooldown_timer.reset()
-            if (
-                button_to_minigame_from_tutorial.rect.collidepoint(event.pos)
-                and mode == "tutorial_minigame"
-            ):
-                isLoading = True
                 next_mode = "minigame"
                 cooldown_timer.reset()
             if (
@@ -528,14 +554,32 @@ while running:
             if event.key == pygame.K_SPACE and mode == "game":
                 add_clicks()
 
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT] and mode == "minigame":
+        namaPlayer.x -= 3
+    if keys[pygame.K_RIGHT] and mode == "minigame":
+        namaPlayer.x += 3
+    if keys[pygame.K_UP] and mode == "minigame":
+        namaPlayer.y -= 3
+    if keys[pygame.K_DOWN] and mode == "minigame":
+        namaPlayer.y += 3
+
+    namaPlayer.x = max(0, min(1000 - namaPlayer.rect.width, namaPlayer.x))
+    namaPlayer.y = max(0, min(800 - namaPlayer.rect.height, namaPlayer.y))
+
+    if mode == "minigame":
+        if coin_spawn_timer.done() and len(coins) < MAX_COINS:
+            coins.append(Coin())
+            coin_spawn_timer.reset()
+
     # DRAW MODE
     if mode == "game":
         screen.fill(GREY)
         button_boost.draw(screen)
         button_to_minigame_from_game.draw(screen)
         screen.blit(
-            font_25.render("Мини-игра", True, BLACK),
-            (button_to_minigame_from_game.x + 25, button_to_minigame_from_game.y + 15)
+            font_25.render("Зелёное поле", True, BLACK),
+            (button_to_minigame_from_game.x + 16, button_to_minigame_from_game.y + 15)
         )
         screen.blit(
             font_30.render(f"Буст: +{boost + 1}", True, BLACK),
@@ -586,7 +630,7 @@ while running:
         if total_clicks >= 100000 and not cfa_1000000_clicks.unlocked:
             cfa_1000000_clicks.unlocked = True
             cfa_1000000_clicks.show_popup = True
-            cfa_1000_clicks.timer.reset()   
+            cfa_1000_clicks.timer.reset()
                 
         cfa_1000_clicks.pop_out(screen)
         cfa_10000_clicks.pop_out(screen)
@@ -680,26 +724,23 @@ while running:
             font_40.render("-", True, BLACK),
             (sdtrack_button_minus.rect.x + 80, sdtrack_button_minus.rect.y + 6)
         )
-    if mode == "tutorial_minigame":
-        screen.blit(minigame_tutorial_ru, (0, 0))
-        button_back_to_game_from_minigametutorial.draw(screen)
-        button_to_minigame_from_tutorial.draw(screen)
-        screen.blit(
-            font_30.render("Назад", True, BLACK),
-            (button_back_to_game_from_minigametutorial.x + 50, button_back_to_game_from_minigametutorial.y + 10)
-        )
-        screen.blit(
-            font_30.render("Играть", True, BLACK),
-            (button_to_minigame_from_tutorial.x + 50, button_to_minigame_from_tutorial.y + 10)
-        )
     if mode == "minigame":
-        screen.fill(GREY)
+        screen.blit(field_bg, (0, 0))
         button_back_from_minigame.draw(screen)
         screen.blit(
             font_30.render("Назад", True, BLACK),
             ((button_back_from_minigame.x + 52.5, button_back_from_minigame.y + 10.5),)
         )
+        namaPlayer.draw(screen)
+        for coin in coins:
+            coin.draw(screen)
 
+    for coin in coins[:]:
+        if namaPlayer.rect.colliderect(coin.rect):
+            coins.remove(coin)
+            NamaCoins += 1
+            coins_collecting.play()
+            
     for pop in song_popouts.values():
         pop.update()
         pop.draw(screen)

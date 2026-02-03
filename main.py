@@ -61,6 +61,8 @@ field_bg = pygame.image.load("assets/images/UI/greenfield.png")
 pickable_namacoin = pygame.image.load("assets/images/UI/NamaCoin.png")
 
 locked_button_gfield = pygame.image.load("assets/images/UI/locked_button_1000.png").convert_alpha()
+
+shelf_bg = pygame.image.load("assets/images/UI/shelf_bg.png")
 settings_back_button_rect = settings_back_button.get_rect(
     center=(W // 2, H - 50)
 )
@@ -427,12 +429,13 @@ button_to_minigame_from_game = Button(20, 580)
 button_back_from_minigame = Button(20, 720)
 button_to_shelf_from_game = Button(800, 730)
 button_back_from_shelf = Button(20, 720)
-
+ 
 clicking_text_timer = Timer(200)
 cooldown_timer = Timer(1)
+coin_spawn_timer = Timer(2000)
+coin_boost_timer = Timer(5000)
 
 coins = []
-coin_spawn_timer = Timer(2000)  # каждые 2 секунды
 MAX_COINS = 5
 required_clicks_for_boost = 250
 current_music_credits = None
@@ -441,7 +444,6 @@ seen_tamas = set()
 tama_on_screen = tamas[0]
 
 boost_coin = 1
-coin_boost_timer = Timer(5000)  
 coin_boost_active = False
 
 total_clicks = 990
@@ -797,17 +799,18 @@ while running:
                     NamaCoins += 1 * boost_coin
 
                 coins_collecting.play()
+
+    if coin_boost_active and coin_boost_timer.done():
+        boost_coin = 1
+        coin_boost_active = False
     
     if mode == "shelf":
-        screen.fill(GREY)
+        screen.blit(shelf_bg, (0, 0))
         button_back_from_shelf.draw(screen)
         screen.blit(
             font_30.render("Назад", True, BLACK),
             ((button_back_from_shelf.x + 52.5, button_back_from_shelf.y + 10.5),)
         )
-    if coin_boost_active and coin_boost_timer.done():
-        boost_coin = 1
-        coin_boost_active = False
 
     for pop in song_popouts.values():
         pop.update()
@@ -826,7 +829,6 @@ while running:
         and mode != "credits"
         and mode != "settings"
         and mode != "achievements"
-        and total_clicks >= 1000
     ):
         screen.blit(angle_frame, (781, 0))
         screen.blit(NamaCoin_image, (792, 7))

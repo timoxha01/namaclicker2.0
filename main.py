@@ -491,7 +491,7 @@ while running:
             play_next_soundtrack()
             # MouseButton действия:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            print(f"Click at {event.pos}, mode: {mode}")
+            print(f"mode: {mode}")
             if button_to_game_from_menu.rect.collidepoint(event.pos) and mode == "menu":
                 isLoading = True
                 next_mode = "game"

@@ -42,7 +42,7 @@ menu_screen = pygame.image.load("assets/images/UI/menu_screen.png")
 
 settings_bg = pygame.image.load("assets/images/UI/settings_bg.png")
 
-achievements_bg_ru = pygame.image.load("assets/images/UI/achievements_ru.png")
+achievements_bg_ru = pygame.image.load("assets/images/UI/achievements.png")
 
 volume_icon = pygame.image.load("assets/images/UI/volume_icon.png")
 
@@ -248,7 +248,7 @@ class Achievements:
             "assets/sounds/sfxes/announcement.mp3"
             )
         self.image = pygame.image.load(
-            "assets/images/UI/hidden_achi_ru.png"
+            "assets/images/UI/hidden_achi.png"
         ).convert_alpha()
         self.rect = self.image.get_rect(topleft=(x, y))
         self.unlocked = False

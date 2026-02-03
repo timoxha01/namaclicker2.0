@@ -1,4 +1,3 @@
-from cmath import e
 import random
 import pygame
 
@@ -328,12 +327,12 @@ cfa_1000_clicks = Achievements("Набрать 1000 кликов", 65, 382)
 cfa_10000_clicks = Achievements("Набрать 10000 кликов", 372, 382)
 cfa_1000000_clicks = Achievements("Набрать 1000000 кликов", 679, 382)
 
-teddy_bear = ShopItems("assets/images/shop_items/teddy_bear.png", 100, 98, 173)
-beluash = ShopItems("assets/images/shop_items/beluash.png", 150, 410, 173)
-energy_drink = ShopItems("assets/images/shop_items/energy_drink.png", 250, 722, 173)
+teddy_bear = ShopItems("assets/images/shop_items/teddy_bear.png", 250, 98, 173)
+beluash = ShopItems("assets/images/shop_items/beluash.png", 500, 410, 173)
+contestant = ShopItems("assets/images/shop_items/contestant.png", 1000, 722, 173)
+energy_drink = ShopItems("assets/images/shop_items/energy_drink.png", None, 410, 430)
 dragon_fruit = ShopItems("assets/images/shop_items/dragon_fruit.png", None, 98, 430)
-minigun = ShopItems("assets/images/shop_items/minigun.png", None, 410, 430)
-contestant = ShopItems("assets/images/shop_items/contestant.png", 1250, 722, 430)
+minigun = ShopItems("assets/images/shop_items/minigun.png", None, 722, 430)
 
 song_popouts = {
     "GoldStandard_ost.mp3": SongsPopouts("assets/images/UI/GoldStandard_SongCard.png"),
@@ -449,7 +448,7 @@ button_to_shelf_from_game = Button(800, 720)
 button_back_from_shelf = Button(20, 720)
 button_to_shop_from_shelf = Button(800, 720)
 button_back_from_shop = Button(20, 720)
-back_button_from_preview = Button(20, 735)
+back_button_from_preview = Button(20, 720)
  
 clicking_text_timer = Timer(200)
 cooldown_timer = Timer(1)

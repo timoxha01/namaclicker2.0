@@ -1,3 +1,4 @@
+from cmath import e
 import random
 import pygame
 
@@ -37,14 +38,12 @@ font_25 = pygame.font.Font(GAME_FONT, 25)
 screen = pygame.display.set_mode((W, H))
 clock = pygame.time.Clock()
 
-credits_bg_en = pygame.image.load("assets/images/UI/credits_en.png")
-credits_bg_ru = pygame.image.load("assets/images/UI/credits_ru.png")
+credits_bg_ru = pygame.image.load("assets/images/UI/credits.png")
 menu_screen = pygame.image.load("assets/images/UI/menu_screen.png")
 
 settings_bg = pygame.image.load("assets/images/UI/settings_bg.png")
 
 achievements_bg_ru = pygame.image.load("assets/images/UI/achievements_ru.png")
-achievements_bg_en = pygame.image.load("assets/images/UI/achievements_en.png")
 
 volume_icon = pygame.image.load("assets/images/UI/volume_icon.png")
 
@@ -63,6 +62,16 @@ pickable_namacoin = pygame.image.load("assets/images/UI/NamaCoin.png")
 locked_button_gfield = pygame.image.load("assets/images/UI/locked_button_1000.png").convert_alpha()
 
 shelf_bg = pygame.image.load("assets/images/UI/shelf_bg.png")
+
+shop_bg = pygame.image.load("assets/images/UI/shop_bg.png")
+
+beluash_preview = pygame.image.load("assets/images/UI/beluash_preview.png")
+contestant_preview = pygame.image.load("assets/images/UI/contestant_preview.png")
+dragon_fruit_preview = pygame.image.load("assets/images/UI/dragon_fruit_preview.png")
+energy_drink_preview = pygame.image.load("assets/images/UI/energy_drink_preview.png")
+minigun_preview = pygame.image.load("assets/images/UI/minigun_preview.png")
+teddy_bear_preview = pygame.image.load("assets/images/UI/teddy_bear_preview.png")
+
 settings_back_button_rect = settings_back_button.get_rect(
     center=(W // 2, H - 50)
 )
@@ -133,20 +142,22 @@ class NamaPlayer():
         self.image = pygame.transform.scale(self.original_image, (144, 144))
         self.rect = self.image.get_rect()
         self.rect.topleft = (self.x, self.y)
-        self.isDamaged = False
-
-    def get_damage(self):
-        if self.isDamaged == True:
-            self.lostSound.play()
-            self.x = 25
-            self.y = 523
-            self.isDamaged = False
-
     def draw(self, screen):
         self.rect.topleft = (self.x, self.y)
         screen.blit(self.image, self.rect)
 
 namaPlayer = NamaPlayer()
+
+class ShopItems():
+    def __init__(self, image_path, price, x, y) -> None:
+        self.price = price
+        self.image = pygame.image.load(image_path).convert_alpha()
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+        self.isBought = False
+    
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
 
 class Timer:
     def __init__(self, duration):
@@ -160,7 +171,7 @@ class Timer:
         self.start = pygame.time.get_ticks()
 
 class SongsPopouts:
-    def __init__(self, image_path, x=11, y=680):
+    def __init__(self, image_path, x=15, y=680):
         self.base_image = pygame.image.load(image_path).convert_alpha()
         self.x = x
         self.y = y
@@ -171,7 +182,7 @@ class SongsPopouts:
 
         self.visible = False
         self.hiding = False
-        self.timer = Timer(2500)
+        self.timer = Timer(1)
 
     def show(self):
         self.scale = 0.0
@@ -317,6 +328,13 @@ cfa_1000_clicks = Achievements("Набрать 1000 кликов", 65, 382)
 cfa_10000_clicks = Achievements("Набрать 10000 кликов", 372, 382)
 cfa_1000000_clicks = Achievements("Набрать 1000000 кликов", 679, 382)
 
+teddy_bear = ShopItems("assets/images/shop_items/teddy_bear.png", 100, 98, 173)
+beluash = ShopItems("assets/images/shop_items/beluash.png", 150, 410, 173)
+energy_drink = ShopItems("assets/images/shop_items/energy_drink.png", 250, 722, 173)
+dragon_fruit = ShopItems("assets/images/shop_items/dragon_fruit.png", None, 98, 430)
+minigun = ShopItems("assets/images/shop_items/minigun.png", None, 410, 430)
+contestant = ShopItems("assets/images/shop_items/contestant.png", 1250, 722, 430)
+
 song_popouts = {
     "GoldStandard_ost.mp3": SongsPopouts("assets/images/UI/GoldStandard_SongCard.png"),
     "Stardust_ost.mp3": SongsPopouts("assets/images/UI/Stardust_SongCard.png"),
@@ -393,7 +411,7 @@ def update_volume():
         cfa_10000_clicks.achievement_sound,
         cfa_1000000_clicks.achievement_sound,
         volume_changing_sound,
-        namatama_byebye,
+        byebye_nama_sound,
     ]:
         sound.set_volume(VOLUME)
 
@@ -417,18 +435,21 @@ def get_next_track():
 
 button_to_menu_from_game = Button(20, 720)
 button_to_game_from_menu = Button((W // 2) - (183 // 2), (H // 2) - (58 // 2))
-button_to_credits_from_menu = Button(800, 730)
+button_to_credits_from_menu = Button(800, 720)
 button_to_achievements_from_menu = Button((W // 2) - (183 // 2), (H // 2) + 40)
 button_to_settings_from_menu = Button((W // 2) - (183 // 2), (H // 2) + 110)
-sfx_button_plus = Button(289, 114)
-sfx_button_minus = Button(527, 114)
-sdtrack_button_plus = Button(289, 275)
-sdtrack_button_minus = Button(527, 275)
+sfx_button_plus = Button(527, 114)
+sfx_button_minus = Button(289, 114)
+sdtrack_button_plus = Button(527, 275)
+sdtrack_button_minus = Button(289, 275)
 button_boost = Button(20, 650)
 button_to_minigame_from_game = Button(20, 580)
 button_back_from_minigame = Button(20, 720)
-button_to_shelf_from_game = Button(800, 730)
+button_to_shelf_from_game = Button(800, 720)
 button_back_from_shelf = Button(20, 720)
+button_to_shop_from_shelf = Button(800, 720)
+button_back_from_shop = Button(20, 720)
+back_button_from_preview = Button(20, 735)
  
 clicking_text_timer = Timer(200)
 cooldown_timer = Timer(1)
@@ -446,7 +467,7 @@ tama_on_screen = tamas[0]
 boost_coin = 1
 coin_boost_active = False
 
-total_clicks = 990
+total_clicks = 0
 boost = 1
 NamaCoins = 0
 
@@ -470,6 +491,7 @@ while running:
             play_next_soundtrack()
             # MouseButton действия:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            print(f"Click at {event.pos}, mode: {mode}")
             if button_to_game_from_menu.rect.collidepoint(event.pos) and mode == "menu":
                 isLoading = True
                 next_mode = "game"
@@ -553,8 +575,6 @@ while running:
                     isLoading = True
                     next_mode = "minigame"
                     cooldown_timer.reset()
-                else:
-                    continue
             if (
                 button_back_from_minigame.rect.collidepoint(event.pos)
                 and mode == "minigame"
@@ -577,6 +597,13 @@ while running:
                 next_mode = "game"
                 cooldown_timer.reset()
             if (
+                button_back_from_shop.rect.collidepoint(event.pos)
+                and mode == "shop"
+            ):
+                isLoading = True
+                next_mode = "shelf"
+                cooldown_timer.reset()
+            if (
                 button_boost.rect.collidepoint(event.pos)
                 and mode == "game"
             ):
@@ -587,8 +614,76 @@ while running:
                     purchase_success.play()
                 else:
                     purchase_failed.play()
+            if (
+                button_to_shop_from_shelf.rect.collidepoint(event.pos)
+                and mode == "shelf"
+            ):
+                isLoading = True
+                next_mode = "shop"
+                cooldown_timer.reset()
             if tama_on_screen.rect.collidepoint(event.pos) and mode == "game":
                 add_clicks()
+            if (
+                button_back_from_shelf.rect.collidepoint(event.pos)
+                and mode == "shelf"
+            ):
+                isLoading = True
+                next_mode = "game"
+                cooldown_timer.reset()
+                
+            # магазин - isPreview
+            if (
+                teddy_bear.rect.collidepoint(event.pos)
+                and mode == "shop"
+            ):
+                isLoading = True
+                next_mode = "teddy_bear_preview"
+                cooldown_timer.reset()
+            if (
+                beluash.rect.collidepoint(event.pos)
+                and mode == "shop"
+            ):
+                isLoading = True
+                next_mode = "beluash_preview"
+                cooldown_timer.reset()
+            if (
+                energy_drink.rect.collidepoint(event.pos)
+                and mode == "shop"
+            ):
+                isLoading = True
+                next_mode = "energy_drink_preview"
+                cooldown_timer.reset()
+            if (
+                dragon_fruit.rect.collidepoint(event.pos)
+                and mode == "shop"
+            ):
+                isLoading = True
+                next_mode = "dragon_fruit_preview"
+                cooldown_timer.reset()
+            if (
+                minigun.rect.collidepoint(event.pos)
+                and mode == "shop"
+            ):
+                isLoading = True
+                next_mode = "minigun_preview"
+                cooldown_timer.reset()
+            if (
+                contestant.rect.collidepoint(event.pos)
+                and mode == "shop" 
+            ):
+                isLoading = True
+                next_mode = "contestant_preview"
+                cooldown_timer.reset()
+            if (
+                back_button_from_preview.rect.collidepoint(event.pos)
+                and mode in ["teddy_bear_preview", "beluash_preview", 
+                        "energy_drink_preview", "dragon_fruit_preview",
+                            "minigun_preview", "contestant_preview"]
+                ):
+                isLoading = True
+                next_mode = "shop"  # Возвращаемся в магазин, а не на полку
+                cooldown_timer.reset()
+                
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE and mode == "game":
                 add_clicks()
@@ -614,7 +709,7 @@ while running:
         button_to_minigame_from_game.draw(screen)
         screen.blit(
             font_30.render("Полка", True, BLACK),
-            (850, 740)
+            (850, 730)
         )
         screen.blit(
             font_25.render("Зелёное поле", True, BLACK),
@@ -807,11 +902,78 @@ while running:
     if mode == "shelf":
         screen.blit(shelf_bg, (0, 0))
         button_back_from_shelf.draw(screen)
+        button_to_shop_from_shelf.draw(screen)
+        screen.blit(
+            font_30.render("В магазин", True, BLACK),
+            ((button_to_shop_from_shelf.x + 20.5, button_to_shop_from_shelf.y + 10.5),)
+        )
         screen.blit(
             font_30.render("Назад", True, BLACK),
             ((button_back_from_shelf.x + 52.5, button_back_from_shelf.y + 10.5),)
         )
-
+        
+    if mode == "shop":
+        screen.blit(shop_bg, (0, 0))
+        button_back_from_shop.draw(screen)
+        screen.blit(
+            font_30.render("Назад", True, BLACK),
+            ((button_back_from_shop.x + 52.5, button_back_from_shop.y + 10.5),)
+        )
+        beluash.draw(screen)
+        energy_drink.draw(screen)
+        minigun.draw(screen)
+        contestant.draw(screen)
+        dragon_fruit.draw(screen)
+        teddy_bear.draw(screen)
+    
+    if mode == "teddy_bear_preview":
+        screen.blit(teddy_bear_preview, (0, 0))
+        back_button_from_preview.draw(screen)
+        screen.blit(
+            font_30.render("Назад", True, BLACK),
+            ((back_button_from_preview.x + 52.5, back_button_from_preview.y + 10.5),)
+        )
+    
+    if mode == "beluash_preview":
+        screen.blit(beluash_preview, (0, 0))
+        back_button_from_preview.draw(screen)
+        screen.blit(
+            font_30.render("Назад", True, BLACK),
+            ((back_button_from_preview.x + 52.5, back_button_from_preview.y + 10.5),)
+        )
+        
+    if mode == "energy_drink_preview":
+        screen.blit(energy_drink_preview, (0, 0))
+        back_button_from_preview.draw(screen)
+        screen.blit(
+            font_30.render("Назад", True, BLACK),
+            ((back_button_from_preview.x + 52.5, back_button_from_preview.y + 10.5),)
+        )
+    
+    if mode == "dragon_fruit_preview":
+        screen.blit(dragon_fruit_preview, (0, 0))
+        back_button_from_preview.draw(screen)
+        screen.blit(
+            font_30.render("Назад", True, BLACK),
+            ((back_button_from_preview.x + 52.5, back_button_from_preview.y + 10.5),)
+        )
+    
+    if mode == "minigun_preview":
+        screen.blit(minigun_preview, (0, 0))
+        back_button_from_preview.draw(screen)
+        screen.blit(
+            font_30.render("Назад", True, BLACK),
+            ((back_button_from_preview.x + 52.5, back_button_from_preview.y + 10.5),)
+        )
+        
+    if mode == "contestant_preview":
+        screen.blit(contestant_preview, (0, 0))
+        back_button_from_preview.draw(screen)
+        screen.blit(
+            font_30.render("Назад", True, BLACK),
+            ((back_button_from_preview.x + 52.5, back_button_from_preview.y + 10.5),)
+        )
+    
     for pop in song_popouts.values():
         pop.update()
         pop.draw(screen)
@@ -823,7 +985,7 @@ while running:
             mouse_click_sound.play()
             mode = next_mode
             isLoading = False
-
+            
     if (
         mode != "menu"
         and mode != "credits"

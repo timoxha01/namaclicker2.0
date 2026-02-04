@@ -9,7 +9,6 @@ print("Loading...")
 W, H = 1000, 800
 FPS = 60
 mode = "menu"
-lang = ""
 
 GAME_FONT = "assets/fonts/Tiny5-Regular.ttf"
 VOLUME = 0.5
@@ -66,10 +65,14 @@ shop_bg = pygame.image.load("assets/images/UI/shop_bg.png")
 
 beluash_preview = pygame.image.load("assets/images/UI/beluash_preview.png")
 contestant_preview = pygame.image.load("assets/images/UI/contestant_preview.png")
-dragon_fruit_preview = pygame.image.load("assets/images/UI/dragon_fruit_preview.png")
+tiger_fruit_preview = pygame.image.load("assets/images/UI/tiger_fruit_preview.png")
 energy_drink_preview = pygame.image.load("assets/images/UI/energy_drink_preview.png")
 minigun_preview = pygame.image.load("assets/images/UI/minigun_preview.png")
 teddy_bear_preview = pygame.image.load("assets/images/UI/teddy_bear_preview.png")
+
+namapass_banner_alfa_acta = pygame.image.load("assets/images/UI/namapass_banner_alfa_acta.png").convert_alpha()
+namapass_banner_ospuze = pygame.image.load("assets/images/UI/namapass_banner_ospuze.png").convert_alpha()
+namapass_banner_trentila = pygame.image.load("assets/images/UI/namapass_banner_trentila.png").convert_alpha()
 
 settings_back_button_rect = settings_back_button.get_rect(
     center=(W // 2, H - 50)
@@ -77,7 +80,9 @@ settings_back_button_rect = settings_back_button.get_rect(
 achievements_back_button_rect = achievements_back_button.get_rect(
     center=(W // 2, H - 55)
 )
-credits_back_button_rect = credits_back_button.get_rect(center=(W // 2, H - 50))
+credits_back_button_rect = credits_back_button.get_rect(
+    center=(W // 2, H - 42.5)
+)
 achievements_back_button_rect = achievements_back_button.get_rect(
     center=(W // 2, H - 50)
 )
@@ -91,6 +96,70 @@ volume_changing_sound = pygame.mixer.Sound("assets/sounds/sfxes/volume_change_so
 purchase_success = pygame.mixer.Sound("assets/sounds/sfxes/purchase_success.mp3")
 purchase_failed = pygame.mixer.Sound("assets/sounds/sfxes/purchase_failed.mp3")
 coins_collecting = pygame.mixer.Sound("assets/sounds/sfxes/NamaCoins_collecting.mp3")
+
+class NamaPassbanner:
+    def __init__(self):
+        self.x = 20
+        self.y = 210
+
+        self.banners = [
+            namapass_banner_alfa_acta,
+            namapass_banner_ospuze,
+            namapass_banner_trentila
+        ]
+
+        self.index = 0
+        self.current_image = self.banners[self.index]
+        self.next_image = None
+
+        self.alpha_current = 255
+        self.alpha_next = 0
+
+        self.fade_speed = 8
+        self.is_fading = False
+
+        self.change_delay = 3000
+        self.timer = pygame.time.get_ticks()
+
+        self.rect = self.current_image.get_rect(topleft=(self.x, self.y))
+
+    def update(self):
+        if not self.is_fading:
+            return
+
+        self.alpha_current -= self.fade_speed
+        self.alpha_next += self.fade_speed
+
+        if self.alpha_current <= 0:
+            self.alpha_current = 255
+            self.alpha_next = 0
+
+            self.index = (self.index + 1) % len(self.banners)
+            self.current_image = self.banners[self.index]
+            self.next_image = None
+
+            self.is_fading = False
+            self.timer = pygame.time.get_ticks()
+
+    def change_banner(self):
+        now = pygame.time.get_ticks()
+
+        if not self.is_fading and now - self.timer >= self.change_delay:
+            self.is_fading = True
+
+            next_index = (self.index + 1) % len(self.banners)
+            self.next_image = self.banners[next_index]
+
+            self.alpha_current = 255
+            self.alpha_next = 0
+
+    def draw(self, screen):
+        screen.blit(self.current_image, (self.x, self.y))
+
+        if self.is_fading and self.next_image:
+            img = self.next_image.copy()
+            img.set_alpha(self.alpha_next)
+            screen.blit(img, (self.x, self.y))
 
 class Namas:
     def __init__(self, name, path, chance):
@@ -154,9 +223,18 @@ class ShopItems():
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
         self.isBought = False
-    
+
     def draw(self, screen):
         screen.blit(self.image, self.rect)
+    
+    def buy(self):
+        global NamaCoins        
+        if NamaCoins >= self.price:
+            self.isBought = True
+            NamaCoins -= self.price
+            purchase_success.play()
+        else:
+            purchase_failed.play()
 
 class Timer:
     def __init__(self, duration):
@@ -181,7 +259,7 @@ class SongsPopouts:
 
         self.visible = False
         self.hiding = False
-        self.timer = Timer(1)
+        self.timer = Timer(2000)
 
     def show(self):
         self.scale = 0.0
@@ -320,46 +398,6 @@ class BoostCoin(Coin):
             )
         )
 
-cfa_collect_all_tamas = Achievements("Собрать все NamaTama", 64, 80)
-cfa_sanic_popout = Achievements("Встретить Sanic", 372, 80)
-cfa_IT = Achievements("Встретить ...", 679, 80)
-cfa_1000_clicks = Achievements("Набрать 1000 кликов", 65, 382)
-cfa_10000_clicks = Achievements("Набрать 10000 кликов", 372, 382)
-cfa_1000000_clicks = Achievements("Набрать 1000000 кликов", 679, 382)
-
-teddy_bear = ShopItems("assets/images/shop_items/teddy_bear.png", 250, 98, 173)
-beluash = ShopItems("assets/images/shop_items/beluash.png", 500, 410, 173)
-contestant = ShopItems("assets/images/shop_items/contestant.png", 1000, 722, 173)
-energy_drink = ShopItems("assets/images/shop_items/energy_drink.png", None, 410, 430)
-dragon_fruit = ShopItems("assets/images/shop_items/dragon_fruit.png", None, 98, 430)
-minigun = ShopItems("assets/images/shop_items/minigun.png", None, 722, 430)
-
-song_popouts = {
-    "GoldStandard_ost.mp3": SongsPopouts("assets/images/UI/GoldStandard_SongCard.png"),
-    "Stardust_ost.mp3": SongsPopouts("assets/images/UI/Stardust_SongCard.png"),
-    "Syntax_CNS_ost.mp3": SongsPopouts("assets/images/UI/SyntaxCNS_SongCard.png"),
-    "TheDivide_ost.mp3": SongsPopouts("assets/images/UI/TheDivide_SongCard.png"),
-    "TheWorldsGreatestGameShow2_ost.mp3": SongsPopouts("assets/images/UI/TheWorldsGreatestGameShow2_SongCard.png")
-}
-
-tamas = [
-    Namas("classic", "assets/images/tamas/classic.png", 1.0),
-    Namas("like", "assets/images/tamas/like.png", 0.7),
-    Namas("search", "assets/images/tamas/search.png", 0.5),
-    Namas("tea", "assets/images/tamas/tea.png", 0.3),
-    Namas("bob", "assets/images/tamas/bob.png", 0.2),
-    Namas("builder", "assets/images/tamas/builder.png", 0.1),
-    Namas("birthday", "assets/images/tamas/birthday.png", 0.1),
-    Namas("stone", "assets/images/tamas/stone.png", 0.1),
-    Namas("gun", "assets/images/tamas/gun.png", 0.05),
-    Namas("galaxy", "assets/images/tamas/galaxy.png", 0.05),
-    Namas("vibe", "assets/images/tamas/vibe.png", 0.03),
-    Namas("evil", "assets/images/tamas/evil.png", 0.01),
-    Namas("demon", "assets/images/tamas/demon.png", 0.01),
-    Namas("sanic", "assets/images/tamas/sanic_ee.png", 0.001),
-    Namas("glitch", "assets/images/tamas/glitch_ee.png", 0.001),
-]
-
 def add_clicks():
     global \
         tama_on_screen, \
@@ -432,6 +470,47 @@ def get_next_track():
         random.shuffle(music_loop)
     return music_loop.pop()
 
+cfa_collect_all_tamas = Achievements("Собрать все NamaTama", 64, 80)
+cfa_sanic_popout = Achievements("Встретить Sanic", 372, 80)
+cfa_IT = Achievements("Встретить ...", 679, 80)
+cfa_1000_clicks = Achievements("Набрать 1000 кликов", 65, 382)
+cfa_10000_clicks = Achievements("Набрать 10000 кликов", 372, 382)
+cfa_1000000_clicks = Achievements("Набрать 1000000 кликов", 679, 382)
+
+teddy_bear = ShopItems("assets/images/shop_items/teddy_bear.png", 250, 98, 173)
+beluash = ShopItems("assets/images/shop_items/beluash.png", 500, 410, 173)
+contestant = ShopItems("assets/images/shop_items/contestant.png", 1000, 722, 173)
+energy_drink = ShopItems("assets/images/shop_items/energy_drink.png", None, 410, 430)
+tiger_fruit = ShopItems("assets/images/shop_items/tiger_fruit.png", None, 98, 430)
+minigun = ShopItems("assets/images/shop_items/minigun.png", None, 722, 430)
+
+song_popouts = {
+    "GoldStandard_ost.mp3": SongsPopouts("assets/images/UI/GoldStandard_SongCard.png"),
+    "Stardust_ost.mp3": SongsPopouts("assets/images/UI/Stardust_SongCard.png"),
+    "Syntax_CNS_ost.mp3": SongsPopouts("assets/images/UI/SyntaxCNS_SongCard.png"),
+    "TheDivide_ost.mp3": SongsPopouts("assets/images/UI/TheDivide_SongCard.png"),
+    "TheWorldsGreatestGameShow2_ost.mp3": SongsPopouts("assets/images/UI/TheWorldsGreatestGameShow2_SongCard.png")
+}
+
+tamas = [
+    Namas("classic", "assets/images/tamas/classic.png", 1.0),
+    Namas("like", "assets/images/tamas/like.png", 0.7),
+    Namas("search", "assets/images/tamas/search.png", 0.5),
+    Namas("tea", "assets/images/tamas/tea.png", 0.3),
+    Namas("bob", "assets/images/tamas/bob.png", 0.2),
+    Namas("builder", "assets/images/tamas/builder.png", 0.1),
+    Namas("birthday", "assets/images/tamas/birthday.png", 0.1),
+    Namas("stone", "assets/images/tamas/stone.png", 0.1),
+    Namas("gun", "assets/images/tamas/gun.png", 0.05),
+    Namas("galaxy", "assets/images/tamas/galaxy.png", 0.05),
+    Namas("vibe", "assets/images/tamas/vibe.png", 0.03),
+    Namas("evil", "assets/images/tamas/evil.png", 0.01),
+    Namas("demon", "assets/images/tamas/demon.png", 0.01),
+    Namas("sanic", "assets/images/tamas/sanic_ee.png", 0.001),
+    Namas("glitch", "assets/images/tamas/glitch_ee.png", 0.001),
+]
+
+banner = NamaPassbanner()
 button_to_menu_from_game = Button(20, 720)
 button_to_game_from_menu = Button((W // 2) - (183 // 2), (H // 2) - (58 // 2))
 button_to_credits_from_menu = Button(800, 720)
@@ -449,7 +528,12 @@ button_back_from_shelf = Button(20, 720)
 button_to_shop_from_shelf = Button(800, 720)
 button_back_from_shop = Button(20, 720)
 back_button_from_preview = Button(20, 720)
- 
+button_back_from_battle_pass = Button(20, 720)
+
+button_buy_bear = Button((W // 2) - (183 // 2), 550)
+button_buy_beluash = Button((W // 2) - (183 // 2), 550)
+button_buy_contestant = Button((W // 2) - (183 // 2), 550)
+
 clicking_text_timer = Timer(200)
 cooldown_timer = Timer(1)
 coin_spawn_timer = Timer(2000)
@@ -468,7 +552,7 @@ coin_boost_active = False
 
 total_clicks = 0
 boost = 1
-NamaCoins = 0
+NamaCoins = 1110
 
 greens_in_bag = 0
 
@@ -629,7 +713,43 @@ while running:
                 isLoading = True
                 next_mode = "game"
                 cooldown_timer.reset()
-                
+            if (
+                banner.rect.collidepoint(event.pos)
+                and mode == "game"
+            ):
+                isLoading = True
+                next_mode = "NamaPass"
+                cooldown_timer.reset()
+            if (
+                button_back_from_battle_pass.rect.collidepoint(event.pos)
+                and mode == "NamaPass"
+            ):
+                isLoading = True
+                next_mode = "game"
+                cooldown_timer.reset()
+            
+            #покупка
+            if (
+                button_buy_bear.rect.collidepoint(event.pos)
+                and mode == "teddy_bear_preview"
+                and not teddy_bear.isBought
+            ):
+                teddy_bear.buy()
+            
+            if (
+                button_buy_beluash.rect.collidepoint(event.pos)
+                and mode == "beluash_preview"
+                and not beluash.isBought
+            ):
+                beluash.buy()
+
+            if (
+                button_buy_contestant.rect.collidepoint(event.pos)
+                and mode == "contestant_preview"
+                and not contestant.isBought
+            ):
+                contestant.buy()
+
             # магазин - isPreview
             if (
                 teddy_bear.rect.collidepoint(event.pos)
@@ -653,11 +773,11 @@ while running:
                 next_mode = "energy_drink_preview"
                 cooldown_timer.reset()
             if (
-                dragon_fruit.rect.collidepoint(event.pos)
+                tiger_fruit.rect.collidepoint(event.pos)
                 and mode == "shop"
             ):
                 isLoading = True
-                next_mode = "dragon_fruit_preview"
+                next_mode = "tiger_fruit_preview"
                 cooldown_timer.reset()
             if (
                 minigun.rect.collidepoint(event.pos)
@@ -676,11 +796,11 @@ while running:
             if (
                 back_button_from_preview.rect.collidepoint(event.pos)
                 and mode in ["teddy_bear_preview", "beluash_preview", 
-                        "energy_drink_preview", "dragon_fruit_preview",
+                        "energy_drink_preview", "tiger_fruit_preview",
                             "minigun_preview", "contestant_preview"]
                 ):
                 isLoading = True
-                next_mode = "shop"  # Возвращаемся в магазин, а не на полку
+                next_mode = "shop"
                 cooldown_timer.reset()
                 
         if event.type == pygame.KEYDOWN:
@@ -705,11 +825,16 @@ while running:
         screen.fill(GREY)
         button_boost.draw(screen)
         button_to_shelf_from_game.draw(screen)
+
+        banner.change_banner()
+        banner.update()
+        banner.draw(screen)
+
         button_to_minigame_from_game.draw(screen)
         screen.blit(
             font_30.render("Полка", True, BLACK),
             (850, 730)
-        )
+        ) 
         screen.blit(
             font_25.render("Зелёное поле", True, BLACK),
             (button_to_minigame_from_game.x + 16, button_to_minigame_from_game.y + 15)
@@ -831,7 +956,7 @@ while running:
         screen.blit(volume_icon, (400 + 20, 218))
         screen.blit(
             font_25.render("Нажмите чтобы вернуться в Меню", True, BLACK),
-            (credits_back_button_rect.x + 15, credits_back_button_rect.y + 14),
+            (settings_back_button_rect.x + 16, settings_back_button_rect.y + 14),
         )
 
         screen.blit(
@@ -902,6 +1027,16 @@ while running:
         screen.blit(shelf_bg, (0, 0))
         button_back_from_shelf.draw(screen)
         button_to_shop_from_shelf.draw(screen)
+        
+        if teddy_bear.isBought:
+            teddy_bear.draw(screen)
+        
+        if beluash.isBought:
+            beluash.draw(screen)
+
+        if contestant.isBought:
+            contestant.draw(screen)
+
         screen.blit(
             font_30.render("В магазин", True, BLACK),
             ((button_to_shop_from_shelf.x + 20.5, button_to_shop_from_shelf.y + 10.5),)
@@ -922,7 +1057,7 @@ while running:
         energy_drink.draw(screen)
         minigun.draw(screen)
         contestant.draw(screen)
-        dragon_fruit.draw(screen)
+        tiger_fruit.draw(screen)
         teddy_bear.draw(screen)
     
     if mode == "teddy_bear_preview":
@@ -932,7 +1067,12 @@ while running:
             font_30.render("Назад", True, BLACK),
             ((back_button_from_preview.x + 52.5, back_button_from_preview.y + 10.5),)
         )
-    
+        if not teddy_bear.isBought:
+            button_buy_bear.draw(screen) 
+            screen.blit(
+                font_30.render("Купить", True, BLACK),
+                ((button_buy_bear.x + 45, button_buy_bear.y + 10.5),)
+            )
     if mode == "beluash_preview":
         screen.blit(beluash_preview, (0, 0))
         back_button_from_preview.draw(screen)
@@ -940,7 +1080,27 @@ while running:
             font_30.render("Назад", True, BLACK),
             ((back_button_from_preview.x + 52.5, back_button_from_preview.y + 10.5),)
         )
+        if not beluash.isBought:
+            button_buy_beluash.draw(screen)
+            screen.blit(
+                font_30.render("Купить", True, BLACK),
+                ((button_buy_beluash.x + 45, button_buy_beluash.y + 10.5),)
+            )
         
+    if mode == "contestant_preview":
+        screen.blit(contestant_preview, (0, 0))
+        back_button_from_preview.draw(screen)
+        screen.blit(
+            font_30.render("Назад", True, BLACK),
+            ((back_button_from_preview.x + 52.5, back_button_from_preview.y + 10.5),)
+        )
+        if not contestant.isBought:
+            button_buy_contestant.draw(screen)
+            screen.blit(
+                font_30.render("Купить", True, BLACK),
+                ((button_buy_contestant.x + 45, button_buy_contestant.y + 10.5),)
+            )
+
     if mode == "energy_drink_preview":
         screen.blit(energy_drink_preview, (0, 0))
         back_button_from_preview.draw(screen)
@@ -949,8 +1109,8 @@ while running:
             ((back_button_from_preview.x + 52.5, back_button_from_preview.y + 10.5),)
         )
     
-    if mode == "dragon_fruit_preview":
-        screen.blit(dragon_fruit_preview, (0, 0))
+    if mode == "tiger_fruit_preview":
+        screen.blit(tiger_fruit_preview, (0, 0))
         back_button_from_preview.draw(screen)
         screen.blit(
             font_30.render("Назад", True, BLACK),
@@ -965,14 +1125,15 @@ while running:
             ((back_button_from_preview.x + 52.5, back_button_from_preview.y + 10.5),)
         )
         
-    if mode == "contestant_preview":
-        screen.blit(contestant_preview, (0, 0))
-        back_button_from_preview.draw(screen)
+    
+    if mode == "NamaPass":
+        screen.fill(GREY)
+        button_back_from_battle_pass.draw(screen)
         screen.blit(
             font_30.render("Назад", True, BLACK),
-            ((back_button_from_preview.x + 52.5, back_button_from_preview.y + 10.5),)
+            ((button_back_from_battle_pass.x + 52.5, button_back_from_battle_pass.y + 10.5),)
         )
-    
+
     for pop in song_popouts.values():
         pop.update()
         pop.draw(screen)

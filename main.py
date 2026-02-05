@@ -576,12 +576,12 @@ cooldown_timer = Timer(1)
 coin_spawn_timer = Timer(2000)
 coin_boost_timer = Timer(5000)
 
-namapass_5min_timer = Timer(10000) #300000
-namapass_10min_timer = Timer(9000) #600000
-namapass_15min_timer = Timer(8000) #900000
-namapass_20min_timer = Timer(7000) #1200000
-namapass_25min_timer = Timer(6000) #1500000
-namapass_30min_timer = Timer(5000) #1800000
+namapass_5min_timer = Timer(300000)
+namapass_10min_timer = Timer(600000)
+namapass_15min_timer = Timer(900000)
+namapass_20min_timer = Timer(1200000)
+namapass_25min_timer = Timer(1500000)
+namapass_30min_timer = Timer(1800000)
 
 namapass_100_coins = NamaPassItemsCollect(139, 461)
 namapass_200_coins = NamaPassItemsCollect(433, 461)
@@ -803,6 +803,30 @@ while running:
                 if not namapass_500_coins.isCollected:
                     namapass_500_coins.buy()
                     NamaCoins += 500
+            if (
+                namapass_trentila_reward.rect.collidepoint(event.pos)
+                and mode == "NamaPass"
+                and namapass_trentila_reward.isCountdownDone
+            ):
+                if not namapass_trentila_reward.isCollected:
+                    namapass_trentila_reward.buy()
+                    tiger_fruit.isBought = True
+            if (
+                namapass_ospuze_reward.rect.collidepoint(event.pos)
+                and mode == "NamaPass"
+                and namapass_ospuze_reward.isCountdownDone
+            ):
+                if not namapass_ospuze_reward.isCollected:
+                    namapass_ospuze_reward.buy()
+                    energy_drink.isBought = True
+            if (
+                namapass_minigun_reward.rect.collidepoint(event.pos)
+                and mode == "NamaPass"
+                and namapass_minigun_reward.isCountdownDone
+            ):
+                if not namapass_minigun_reward.isCollected:
+                    namapass_minigun_reward.buy()
+                    minigun.isBought = True
 
             #покупка
             if (
@@ -1113,6 +1137,15 @@ while running:
         if contestant.isBought:
             contestant.draw(screen)
 
+        if tiger_fruit.isBought:
+            tiger_fruit.draw(screen)
+        
+        if energy_drink.isBought:
+            energy_drink.draw(screen)
+        
+        if minigun.isBought:
+            minigun.draw(screen)
+
         screen.blit(
             font_30.render("В магазин", True, BLACK),
             ((button_to_shop_from_shelf.x + 20.5, button_to_shop_from_shelf.y + 10.5),)
@@ -1243,27 +1276,45 @@ while running:
             screen.blit(namapass_500_coins.collected_item, namapass_500_coins.rect)
 
         if namapass_20min_timer.done():
-            pass
+            namapass_trentila_reward.isCountdownDone = True
+            namapass_trentila_reward.draw(screen)
         else:
             screen.blit(
                 font_25.render(f"{namapass_20min_timer.time_format()}", True, WHITE),
                 (782 - 12, 204)
             )
+        if namapass_trentila_reward.isCollected:
+            screen.blit(
+                namapass_trentila_reward.collected_item,
+                namapass_trentila_reward.rect
+            )
 
         if namapass_25min_timer.done():
-            pass
+            namapass_ospuze_reward.isCountdownDone = True
+            namapass_ospuze_reward.draw(screen)
         else:
             screen.blit(
                 font_25.render(f"{namapass_25min_timer.time_format()}", True, WHITE),
                 (489 - 12, 204)
             )
+        if namapass_ospuze_reward.isCollected:
+            screen.blit(
+                namapass_ospuze_reward.collected_item,
+                namapass_ospuze_reward.rect
+            )
 
         if namapass_30min_timer.done():
-            pass
+            namapass_minigun_reward.isCountdownDone = True
+            namapass_minigun_reward.draw(screen)
         else:
             screen.blit(
                 font_25.render(f"{namapass_30min_timer.time_format()}", True, WHITE),
                 (195 - 12, 204)
+            )
+        if namapass_minigun_reward.isCollected:
+            screen.blit(
+                namapass_minigun_reward.collected_item,
+                namapass_minigun_reward.rect
             )
             
 

@@ -63,6 +63,8 @@ shelf_bg = pygame.image.load("assets/images/UI/shelf_bg.png")
 
 shop_bg = pygame.image.load("assets/images/UI/shop_bg.png")
 
+namapass_bg = pygame.image.load("assets/images/UI/namapass_bg.png")
+
 beluash_preview = pygame.image.load("assets/images/UI/beluash_preview.png")
 contestant_preview = pygame.image.load("assets/images/UI/contestant_preview.png")
 tiger_fruit_preview = pygame.image.load("assets/images/UI/tiger_fruit_preview.png")
@@ -73,6 +75,7 @@ teddy_bear_preview = pygame.image.load("assets/images/UI/teddy_bear_preview.png"
 namapass_banner_alfa_acta = pygame.image.load("assets/images/UI/namapass_banner_alfa_acta.png").convert_alpha()
 namapass_banner_ospuze = pygame.image.load("assets/images/UI/namapass_banner_ospuze.png").convert_alpha()
 namapass_banner_trentila = pygame.image.load("assets/images/UI/namapass_banner_trentila.png").convert_alpha()
+namapass_banner_vaiiya = pygame.image.load("assets/images/UI/namapass_banner_vaiiya.png").convert_alpha()
 
 settings_back_button_rect = settings_back_button.get_rect(
     center=(W // 2, H - 50)
@@ -105,7 +108,8 @@ class NamaPassbanner:
         self.banners = [
             namapass_banner_alfa_acta,
             namapass_banner_ospuze,
-            namapass_banner_trentila
+            namapass_banner_trentila,
+            namapass_banner_vaiiya
         ]
 
         self.index = 0
@@ -227,7 +231,7 @@ class ShopItems():
     def draw(self, screen):
         screen.blit(self.image, self.rect)
     
-    def buy(self):
+    def buy(self): 
         global NamaCoins        
         if NamaCoins >= self.price:
             self.isBought = True
@@ -246,6 +250,39 @@ class Timer:
 
     def reset(self):
         self.start = pygame.time.get_ticks()
+    
+    def time_left(self):
+        return max(0, self.duration - (pygame.time.get_ticks() - self.start))
+
+    def time_format(self):
+        total_sec = self.time_left() // 1000
+        minutes = total_sec // 60
+        seconds = total_sec % 60
+        return f"{minutes:02d}:{seconds:02d}"
+
+class NamaPassItemsCollect:
+    def __init__(self, button_x, button_y):
+        self.button_x = button_x
+        self.button_y = button_y
+        self.button_image = pygame.image.load("assets/images/UI/collect_button.png")
+        self.collected_item = pygame.image.load("assets/images/UI/namapass_collected.png")
+        self.rect = self.button_image.get_rect(topleft=(button_x, button_y))
+        self.isCountdownDone = False
+        self.isCollected = False
+    
+    def draw(self, screen):
+        screen.blit(self.button_image, self.rect)
+    
+    def buy(self):
+        global NamaCoins, coins_collecting, purchase_failed
+        if (
+            self.rect.collidepoint(event.pos)
+            and mode == "NamaPass"
+        ):
+            if not self.isCollected and self.isCountdownDone:
+                self.isCollected = True
+                coins_collecting.play()
+
 
 class SongsPopouts:
     def __init__(self, image_path, x=15, y=680):
@@ -539,6 +576,20 @@ cooldown_timer = Timer(1)
 coin_spawn_timer = Timer(2000)
 coin_boost_timer = Timer(5000)
 
+namapass_5min_timer = Timer(10000) #300000
+namapass_10min_timer = Timer(9000) #600000
+namapass_15min_timer = Timer(8000) #900000
+namapass_20min_timer = Timer(7000) #1200000
+namapass_25min_timer = Timer(6000) #1500000
+namapass_30min_timer = Timer(5000) #1800000
+
+namapass_100_coins = NamaPassItemsCollect(139, 461)
+namapass_200_coins = NamaPassItemsCollect(433, 461)
+namapass_500_coins = NamaPassItemsCollect(726, 458)
+namapass_trentila_reward = NamaPassItemsCollect(726, 194)
+namapass_ospuze_reward = NamaPassItemsCollect(434, 194)
+namapass_minigun_reward = NamaPassItemsCollect(142, 193)
+
 coins = []
 MAX_COINS = 5
 required_clicks_for_boost = 250
@@ -552,7 +603,7 @@ coin_boost_active = False
 
 total_clicks = 0
 boost = 1
-NamaCoins = 1110
+NamaCoins = 0
 
 greens_in_bag = 0
 
@@ -574,7 +625,6 @@ while running:
             play_next_soundtrack()
             # MouseButton действия:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            print(f"mode: {mode}")
             if button_to_game_from_menu.rect.collidepoint(event.pos) and mode == "menu":
                 isLoading = True
                 next_mode = "game"
@@ -728,6 +778,32 @@ while running:
                 next_mode = "game"
                 cooldown_timer.reset()
             
+            #namapass
+            if (
+                namapass_100_coins.rect.collidepoint(event.pos)
+                and mode == "NamaPass"
+                and namapass_100_coins.isCountdownDone
+            ):
+                if not namapass_100_coins.isCollected:
+                    namapass_100_coins.buy()
+                    NamaCoins += 100
+            if (
+                namapass_200_coins.rect.collidepoint(event.pos)
+                and mode == "NamaPass"
+                and namapass_200_coins.isCountdownDone
+            ):
+                if not namapass_200_coins.isCollected:
+                    namapass_200_coins.buy()
+                    NamaCoins += 200
+            if (
+                namapass_500_coins.rect.collidepoint(event.pos)
+                and mode == "NamaPass"
+                and namapass_500_coins.isCountdownDone
+            ):
+                if not namapass_500_coins.isCollected:
+                    namapass_500_coins.buy()
+                    NamaCoins += 500
+
             #покупка
             if (
                 button_buy_bear.rect.collidepoint(event.pos)
@@ -1124,15 +1200,72 @@ while running:
             font_30.render("Назад", True, BLACK),
             ((back_button_from_preview.x + 52.5, back_button_from_preview.y + 10.5),)
         )
-        
     
     if mode == "NamaPass":
-        screen.fill(GREY)
+        screen.blit(namapass_bg, (0, 0))
         button_back_from_battle_pass.draw(screen)
         screen.blit(
             font_30.render("Назад", True, BLACK),
             ((button_back_from_battle_pass.x + 52.5, button_back_from_battle_pass.y + 10.5),)
         )
+
+        if namapass_5min_timer.done():
+            namapass_100_coins.isCountdownDone = True
+            namapass_100_coins.draw(screen)
+        else:
+            screen.blit(
+                font_25.render(f"{namapass_5min_timer.time_format()}", True, WHITE),
+                (198 - 12, 472)
+            )
+        if namapass_100_coins.isCollected:
+            screen.blit(namapass_100_coins.collected_item, namapass_100_coins.rect)
+
+        if namapass_10min_timer.done():
+            namapass_200_coins.isCountdownDone = True
+            namapass_200_coins.draw(screen)
+        else:
+            screen.blit(
+                font_25.render(f"{namapass_10min_timer.time_format()}", True, WHITE),
+                (490 - 12, 472)
+            )
+        if namapass_200_coins.isCollected:
+            screen.blit(namapass_200_coins.collected_item, namapass_200_coins.rect)
+
+        if namapass_15min_timer.done():
+            namapass_500_coins.isCountdownDone = True
+            namapass_500_coins.draw(screen)
+        else:
+            screen.blit(
+                font_25.render(f"{namapass_15min_timer.time_format()}", True, WHITE),
+                (782 - 12, 472)
+            )
+        if namapass_500_coins.isCollected:
+            screen.blit(namapass_500_coins.collected_item, namapass_500_coins.rect)
+
+        if namapass_20min_timer.done():
+            pass
+        else:
+            screen.blit(
+                font_25.render(f"{namapass_20min_timer.time_format()}", True, WHITE),
+                (782 - 12, 204)
+            )
+
+        if namapass_25min_timer.done():
+            pass
+        else:
+            screen.blit(
+                font_25.render(f"{namapass_25min_timer.time_format()}", True, WHITE),
+                (489 - 12, 204)
+            )
+
+        if namapass_30min_timer.done():
+            pass
+        else:
+            screen.blit(
+                font_25.render(f"{namapass_30min_timer.time_format()}", True, WHITE),
+                (195 - 12, 204)
+            )
+            
 
     for pop in song_popouts.values():
         pop.update()

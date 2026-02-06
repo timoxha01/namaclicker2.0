@@ -96,8 +96,6 @@ trentila_quote = pygame.image.load("assets/images/UI/trentila_info.png").convert
 ospuze_quote = pygame.image.load("assets/images/UI/ospuze_info.png").convert_alpha()
 alfa_acta_quote = pygame.image.load("assets/images/UI/alfa_acta_info.png").convert_alpha()
 
-
-
 byebye_nama_sound = pygame.mixer.Sound("assets/sounds/sfxes/namatama_byebye.mp3")
 click_sound = pygame.mixer.Sound("assets/sounds/sfxes/click_sound.mp3")
 mouse_click_sound = pygame.mixer.Sound("assets/sounds/sfxes/mouse_click.mp3")
@@ -233,7 +231,7 @@ class Namas:
 
     def pulse(self):
         self.scale = 0.85
-        self.target_scale = 1.0
+        self.target_scale = 1.0 
         self.pulsing = True
 
 class NamaPlayer():

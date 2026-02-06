@@ -55,7 +55,7 @@ angle_frame = pygame.image.load("assets/images/UI/angle_frame.png").convert_alph
 
 field_bg = pygame.image.load("assets/images/UI/greenfield.png")
 
-pickable_namacoin = pygame.image.load("assets/images/UI/NamaCoin.png")
+pickable_namacoin = pygame.image.load("assets/images/UI/NamaCoin.png").convert_alpha()
 
 locked_button_gfield = pygame.image.load("assets/images/UI/locked_button_1000.png").convert_alpha()
 
@@ -65,17 +65,44 @@ shop_bg = pygame.image.load("assets/images/UI/shop_bg.png")
 
 namapass_bg = pygame.image.load("assets/images/UI/namapass_bg.png")
 
-beluash_preview = pygame.image.load("assets/images/UI/beluash_preview.png")
-contestant_preview = pygame.image.load("assets/images/UI/contestant_preview.png")
-tiger_fruit_preview = pygame.image.load("assets/images/UI/tiger_fruit_preview.png")
-energy_drink_preview = pygame.image.load("assets/images/UI/energy_drink_preview.png")
-minigun_preview = pygame.image.load("assets/images/UI/minigun_preview.png")
-teddy_bear_preview = pygame.image.load("assets/images/UI/teddy_bear_preview.png")
+beluash_preview = pygame.image.load("assets/images/UI/beluash_preview.png").convert_alpha()
+contestant_preview = pygame.image.load("assets/images/UI/contestant_preview.png").convert_alpha()
+tiger_fruit_preview = pygame.image.load("assets/images/UI/tiger_fruit_preview.png").convert_alpha()
+energy_drink_preview = pygame.image.load("assets/images/UI/energy_drink_preview.png").convert_alpha()
+minigun_preview = pygame.image.load("assets/images/UI/minigun_preview.png").convert_alpha()
+teddy_bear_preview = pygame.image.load("assets/images/UI/teddy_bear_preview.png").convert_alpha()
 
 namapass_banner_alfa_acta = pygame.image.load("assets/images/UI/namapass_banner_alfa_acta.png").convert_alpha()
 namapass_banner_ospuze = pygame.image.load("assets/images/UI/namapass_banner_ospuze.png").convert_alpha()
 namapass_banner_trentila = pygame.image.load("assets/images/UI/namapass_banner_trentila.png").convert_alpha()
 namapass_banner_vaiiya = pygame.image.load("assets/images/UI/namapass_banner_vaiiya.png").convert_alpha()
+
+trentila_button = pygame.image.load("assets/images/UI/trentila_button.png").convert_alpha()
+vaiiya_button = pygame.image.load("assets/images/UI/vaiiya_button.png").convert_alpha()
+ospuze_button = pygame.image.load("assets/images/UI/ospuze_button.png").convert_alpha()
+alfa_acta_button = pygame.image.load("assets/images/UI/alfa_acta_button.png").convert_alpha()
+
+vaiiya_quote = pygame.image.load("assets/images/UI/vaiiya_info.png").convert_alpha()
+trentila_quote = pygame.image.load("assets/images/UI/trentila_info.png").convert_alpha()
+ospuze_quote = pygame.image.load("assets/images/UI/ospuze_info.png").convert_alpha()
+alfa_acta_quote = pygame.image.load("assets/images/UI/alfa_acta_info.png").convert_alpha()
+
+trentila_button_rect = trentila_button.get_rect(
+    center=(303 + (186 // 2), 270)
+)
+
+ospuze_button_rect = ospuze_button.get_rect(
+    center=(509 + (186 // 2), 270)
+)
+
+alfa_acta_button_rect = alfa_acta_button.get_rect(
+    center=(303 + (186 // 2), 430)
+)
+
+vaiiya_button_rect = vaiiya_button.get_rect(
+    center=(511 + (186 // 2), 430)
+)
+
 
 settings_back_button_rect = settings_back_button.get_rect(
     center=(W // 2, H - 50)
@@ -566,6 +593,9 @@ button_to_shop_from_shelf = Button(800, 720)
 button_back_from_shop = Button(20, 720)
 back_button_from_preview = Button(20, 720)
 button_back_from_battle_pass = Button(20, 720)
+button_to_sponsors_from_NamaPass = Button(800, 720)
+button_back_from_sponsors_choice = Button(20, 720)
+button_back_from_sponsors_quotes = Button(20, 720)
 
 button_buy_bear = Button((W // 2) - (183 // 2), 550)
 button_buy_beluash = Button((W // 2) - (183 // 2), 550)
@@ -610,7 +640,7 @@ greens_in_bag = 0
 show_boost = False
 next_mode = ""
 
-play_next_soundtrack()
+# play_next_soundtrack()
 print("Game Loaded, Booting up...")
 
 running = True
@@ -894,6 +924,50 @@ while running:
                 next_mode = "contestant_preview"
                 cooldown_timer.reset()
             if (
+                button_to_sponsors_from_NamaPass.rect.collidepoint(event.pos)
+                and mode == "NamaPass"
+            ):
+                isLoading = True
+                next_mode = "sponsors_choice"
+                cooldown_timer.reset()
+            if (
+                button_back_from_sponsors_choice.rect.collidepoint(event.pos)
+                and mode == "sponsors_choice"
+            ):
+                isLoading = True
+                next_mode = "NamaPass"
+                cooldown_timer.reset()
+            if (
+                trentila_button_rect.collidepoint(event.pos)
+                and mode == "sponsors_choice"
+            ):
+                isLoading = True
+                next_mode = "trentila_sponsor_quote"
+                cooldown_timer.reset()
+            if (
+                ospuze_button_rect.collidepoint(event.pos)
+                and mode == "sponsors_choice"
+            ):
+                isLoading = True
+                next_mode = "ospuze_sponsor_quote"
+                cooldown_timer.reset()
+            if (
+                alfa_acta_button_rect.collidepoint(event.pos)
+                and mode == "sponsors_choice"
+            ):
+                isLoading = True
+                next_mode = "alfa_acta_sponsor_quote"
+                cooldown_timer.reset()
+            if (
+                vaiiya_button_rect.collidepoint(event.pos)
+                and mode == "sponsors_choice"
+            ):
+                isLoading = True
+                next_mode = "vaiiya_sponsor_quote"
+                cooldown_timer.reset()
+            
+
+            if (
                 back_button_from_preview.rect.collidepoint(event.pos)
                 and mode in ["teddy_bear_preview", "beluash_preview", 
                         "energy_drink_preview", "tiger_fruit_preview",
@@ -901,6 +975,15 @@ while running:
                 ):
                 isLoading = True
                 next_mode = "shop"
+                cooldown_timer.reset()
+
+            if (
+                button_back_from_sponsors_quotes.rect.collidepoint(event.pos)
+                and mode in ["ospuze_sponsor_quote", "trentila_sponsor_quote", 
+                        "alfa_acta_sponsor_quote", "vaiiya_sponsor_quote"]
+                ):
+                isLoading = True
+                next_mode = "sponsors_choice"
                 cooldown_timer.reset()
                 
         if event.type == pygame.KEYDOWN:
@@ -1237,6 +1320,11 @@ while running:
     if mode == "NamaPass":
         screen.blit(namapass_bg, (0, 0))
         button_back_from_battle_pass.draw(screen)
+        button_to_sponsors_from_NamaPass.draw(screen)
+        screen.blit(
+            font_30.render("Спонсоры", True, BLACK),
+            ((button_to_sponsors_from_NamaPass.x + 30, button_to_sponsors_from_NamaPass.y + 10.5),)
+        )
         screen.blit(
             font_30.render("Назад", True, BLACK),
             ((button_back_from_battle_pass.x + 52.5, button_back_from_battle_pass.y + 10.5),)
@@ -1317,6 +1405,51 @@ while running:
                 namapass_minigun_reward.rect
             )
             
+    if mode == "sponsors_choice":
+        screen.fill(GREY)
+        button_back_from_sponsors_choice.draw(screen)
+        screen.blit(
+            font_30.render("Назад", True, BLACK),
+            ((button_back_from_sponsors_choice.x + 52.5, button_back_from_sponsors_choice.y + 10.5),)
+        )
+
+        screen.blit(trentila_button, trentila_button_rect)
+        screen.blit(ospuze_button, ospuze_button_rect)
+        screen.blit(alfa_acta_button, alfa_acta_button_rect)
+        screen.blit(vaiiya_button, vaiiya_button_rect)
+
+    #sponsors_quotes
+    if mode == "trentila_sponsor_quote":
+        button_back_from_sponsors_quotes.draw(screen)
+        screen.blit(trentila_quote, (50, 65))
+        screen.blit(
+            font_30.render("Назад", True, BLACK),
+            ((button_back_from_sponsors_quotes.x + 52.5, button_back_from_sponsors_quotes.y + 10.5),)
+        )
+    
+    if mode == "ospuze_sponsor_quote":
+        button_back_from_sponsors_quotes.draw(screen)
+        screen.blit(ospuze_quote, (50, 65))
+        screen.blit(
+            font_30.render("Назад", True, BLACK),
+            ((button_back_from_sponsors_quotes.x + 52.5, button_back_from_sponsors_quotes.y + 10.5),)
+        )
+    
+    if mode == "alfa_acta_sponsor_quote":
+        button_back_from_sponsors_quotes.draw(screen)
+        screen.blit(alfa_acta_quote, (50, 65))
+        screen.blit(
+            font_30.render("Назад", True, BLACK),
+            ((button_back_from_sponsors_quotes.x + 52.5, button_back_from_sponsors_quotes.y + 10.5),)
+        )
+    
+    if mode == "vaiiya_sponsor_quote":
+        button_back_from_sponsors_quotes.draw(screen)
+        screen.blit(vaiiya_quote, (50, 65))
+        screen.blit(
+            font_30.render("Назад", True, BLACK),
+            ((button_back_from_sponsors_quotes.x + 52.5, button_back_from_sponsors_quotes.y + 10.5),)
+        )
 
     for pop in song_popouts.values():
         pop.update()
@@ -1329,7 +1462,7 @@ while running:
             mouse_click_sound.play()
             mode = next_mode
             isLoading = False
-            
+        
     if (
         mode != "menu"
         and mode != "credits"
@@ -1348,5 +1481,3 @@ while running:
 
 print("Game is quitting")
 pygame.quit()
-
-#* Сделать popout подказки, напр. когда игрок достиг 1000 кликов, показать что он может пойти на ферму и другое

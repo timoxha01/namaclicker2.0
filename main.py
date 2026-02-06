@@ -22,7 +22,9 @@ SOUNDTRACKS = [
     "assets/sounds/osts/Stardust_ost.mp3",
     "assets/sounds/osts/Syntax_CNS_ost.mp3",
     "assets/sounds/osts/TheDivide_ost.mp3",
-    "assets/sounds/osts/TheWorldsGreatestGameShow2_ost.mp3"
+    "assets/sounds/osts/TheWorldsGreatestGameShow2_ost.mp3",
+    "assets/sounds/osts/IntoTheUnknown_ost.mp3",
+    "assets/sounds/osts/TheNextStage_ost.mp3"
 ]
 
 MUSIC_END_EVENT = pygame.USEREVENT + 1
@@ -45,10 +47,9 @@ achievements_bg_ru = pygame.image.load("assets/images/UI/achievements.png")
 
 volume_icon = pygame.image.load("assets/images/UI/volume_icon.png")
 
-credits_back_button = pygame.image.load("assets/images/UI/button_long.png")
-achievements_back_button = pygame.image.load("assets/images/UI/button_long.png")
-
-settings_back_button = pygame.image.load("assets/images/UI/button_long.png")
+long_button_img = pygame.image.load(
+    "assets/images/UI/button_long.png"
+).convert_alpha()
 
 NamaCoin_image = pygame.image.load("assets/images/UI/NamaCoin.png")
 angle_frame = pygame.image.load("assets/images/UI/angle_frame.png").convert_alpha()
@@ -77,45 +78,25 @@ namapass_banner_ospuze = pygame.image.load("assets/images/UI/namapass_banner_osp
 namapass_banner_trentila = pygame.image.load("assets/images/UI/namapass_banner_trentila.png").convert_alpha()
 namapass_banner_vaiiya = pygame.image.load("assets/images/UI/namapass_banner_vaiiya.png").convert_alpha()
 
-trentila_button = pygame.image.load("assets/images/UI/trentila_button.png").convert_alpha()
-vaiiya_button = pygame.image.load("assets/images/UI/vaiiya_button.png").convert_alpha()
-ospuze_button = pygame.image.load("assets/images/UI/ospuze_button.png").convert_alpha()
-alfa_acta_button = pygame.image.load("assets/images/UI/alfa_acta_button.png").convert_alpha()
+trentila_button_img = pygame.image.load(
+    "assets/images/UI/trentila_button.png"
+).convert_alpha()
+vaiiya_button_img = pygame.image.load(
+    "assets/images/UI/vaiiya_button.png"
+).convert_alpha()
+ospuze_button_img = pygame.image.load(
+    "assets/images/UI/ospuze_button.png"
+).convert_alpha()
+alfa_acta_button_img = pygame.image.load(
+    "assets/images/UI/alfa_acta_button.png"
+).convert_alpha()
 
 vaiiya_quote = pygame.image.load("assets/images/UI/vaiiya_info.png").convert_alpha()
 trentila_quote = pygame.image.load("assets/images/UI/trentila_info.png").convert_alpha()
 ospuze_quote = pygame.image.load("assets/images/UI/ospuze_info.png").convert_alpha()
 alfa_acta_quote = pygame.image.load("assets/images/UI/alfa_acta_info.png").convert_alpha()
 
-trentila_button_rect = trentila_button.get_rect(
-    center=(303 + (186 // 2), 270)
-)
 
-ospuze_button_rect = ospuze_button.get_rect(
-    center=(509 + (186 // 2), 270)
-)
-
-alfa_acta_button_rect = alfa_acta_button.get_rect(
-    center=(303 + (186 // 2), 430)
-)
-
-vaiiya_button_rect = vaiiya_button.get_rect(
-    center=(511 + (186 // 2), 430)
-)
-
-
-settings_back_button_rect = settings_back_button.get_rect(
-    center=(W // 2, H - 50)
-)
-achievements_back_button_rect = achievements_back_button.get_rect(
-    center=(W // 2, H - 55)
-)
-credits_back_button_rect = credits_back_button.get_rect(
-    center=(W // 2, H - 42.5)
-)
-achievements_back_button_rect = achievements_back_button.get_rect(
-    center=(W // 2, H - 50)
-)
 
 byebye_nama_sound = pygame.mixer.Sound("assets/sounds/sfxes/namatama_byebye.mp3")
 click_sound = pygame.mixer.Sound("assets/sounds/sfxes/click_sound.mp3")
@@ -152,7 +133,11 @@ class NamaPassbanner:
         self.change_delay = 3000
         self.timer = pygame.time.get_ticks()
 
-        self.rect = self.current_image.get_rect(topleft=(self.x, self.y))
+        self.base_rect = self.current_image.get_rect(topleft=(self.x, self.y))
+        self.rect = self.base_rect.copy()
+        self.scale = 1.0
+        self.target_scale = 1.0
+        self.scale_speed = 0.15
 
     def update(self):
         if not self.is_fading:
@@ -185,12 +170,30 @@ class NamaPassbanner:
             self.alpha_next = 0
 
     def draw(self, screen):
-        screen.blit(self.current_image, (self.x, self.y))
+        mouse_pos = pygame.mouse.get_pos()
+        if self.base_rect.collidepoint(mouse_pos):
+            self.target_scale = 0.92
+        else:
+            self.target_scale = 1.0
+
+        if self.scale != self.target_scale:
+            self.scale += (self.target_scale - self.scale) * self.scale_speed
+            if abs(self.scale - self.target_scale) < 0.01:
+                self.scale = self.target_scale
+
+        w = int(self.current_image.get_width() * self.scale)
+        h = int(self.current_image.get_height() * self.scale)
+        img = pygame.transform.smoothscale(self.current_image, (w, h))
+        self.rect = img.get_rect(center=self.base_rect.center)
+        screen.blit(img, self.rect)
 
         if self.is_fading and self.next_image:
-            img = self.next_image.copy()
-            img.set_alpha(self.alpha_next)
-            screen.blit(img, (self.x, self.y))
+            w = int(self.next_image.get_width() * self.scale)
+            h = int(self.next_image.get_height() * self.scale)
+            img_next = pygame.transform.smoothscale(self.next_image, (w, h))
+            img_next.set_alpha(self.alpha_next)
+            rect_next = img_next.get_rect(center=self.base_rect.center)
+            screen.blit(img_next, rect_next)
 
 class Namas:
     def __init__(self, name, path, chance):
@@ -323,7 +326,7 @@ class SongsPopouts:
 
         self.visible = False
         self.hiding = False
-        self.timer = Timer(2000)
+        self.timer = Timer(4000)
 
     def show(self):
         self.scale = 0.0
@@ -366,11 +369,106 @@ class Button:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.image = pygame.image.load("assets/images/UI/button.png").convert_alpha()
-        self.rect = self.image.get_rect(topleft=(self.x, self.y))
+        self.original_image = pygame.image.load(
+            "assets/images/UI/button.png"
+        ).convert_alpha()
+        self.image = self.original_image
+        self.base_rect = self.original_image.get_rect(topleft=(self.x, self.y))
+        self.rect = self.base_rect.copy()
+        self.scale = 1.0
+        self.target_scale = 1.0
+        self.scale_speed = 0.15
 
     def draw(self, screen):
+        mouse_pos = pygame.mouse.get_pos()
+        if self.base_rect.collidepoint(mouse_pos):
+            self.target_scale = 0.92
+        else:
+            self.target_scale = 1.0
+
+        if self.scale != self.target_scale:
+            self.scale += (self.target_scale - self.scale) * self.scale_speed
+            if abs(self.scale - self.target_scale) < 0.01:
+                self.scale = self.target_scale
+            size = (
+                int(self.original_image.get_width() * self.scale),
+                int(self.original_image.get_height() * self.scale),
+            )
+            self.image = pygame.transform.smoothscale(self.original_image, size)
+            self.rect = self.image.get_rect(center=self.base_rect.center)
+
         screen.blit(self.image, self.rect)
+
+class HoverImage:
+    def __init__(self, image, center):
+        self.original_image = image
+        self.image = self.original_image
+        self.base_rect = self.original_image.get_rect(center=center)
+        self.rect = self.base_rect.copy()
+        self.scale = 1.0
+        self.target_scale = 1.0
+        self.scale_speed = 0.15
+
+    def draw(self, screen):
+        mouse_pos = pygame.mouse.get_pos()
+        if self.base_rect.collidepoint(mouse_pos):
+            self.target_scale = 0.92
+        else:
+            self.target_scale = 1.0
+
+        if self.scale != self.target_scale:
+            self.scale += (self.target_scale - self.scale) * self.scale_speed
+            if abs(self.scale - self.target_scale) < 0.01:
+                self.scale = self.target_scale
+            size = (
+                int(self.original_image.get_width() * self.scale),
+                int(self.original_image.get_height() * self.scale),
+            )
+            self.image = pygame.transform.smoothscale(self.original_image, size)
+            self.rect = self.image.get_rect(center=self.base_rect.center)
+
+        screen.blit(self.image, self.rect)
+
+def draw_button_text(screen, text, font, color, button, offset):
+    text_surface = font.render(text, True, color)
+    scale = button.scale
+    if scale != 1.0:
+        w = max(1, int(text_surface.get_width() * scale))
+        h = max(1, int(text_surface.get_height() * scale))
+        text_surface = pygame.transform.smoothscale(text_surface, (w, h))
+    x = button.rect.x + int(offset[0] * scale)
+    y = button.rect.y + int(offset[1] * scale)
+    screen.blit(text_surface, (x, y))
+
+credits_back_button = HoverImage(
+    long_button_img,
+    (W // 2, H - 42.5)
+)
+achievements_back_button = HoverImage(
+    long_button_img,
+    (W // 2, H - 50)
+)
+settings_back_button = HoverImage(
+    long_button_img,
+    (W // 2, H - 50)
+)
+
+trentila_button = HoverImage(
+    trentila_button_img,
+    (303 + (186 // 2), 270)
+)
+ospuze_button = HoverImage(
+    ospuze_button_img,
+    (509 + (186 // 2), 270)
+)
+alfa_acta_button = HoverImage(
+    alfa_acta_button_img,
+    (303 + (186 // 2), 430)
+)
+vaiiya_button = HoverImage(
+    vaiiya_button_img,
+    (511 + (186 // 2), 430)
+)
 
 class Achievements:
     def __init__(self, pop_out_text, x, y):
@@ -553,7 +651,9 @@ song_popouts = {
     "Stardust_ost.mp3": SongsPopouts("assets/images/UI/Stardust_SongCard.png"),
     "Syntax_CNS_ost.mp3": SongsPopouts("assets/images/UI/SyntaxCNS_SongCard.png"),
     "TheDivide_ost.mp3": SongsPopouts("assets/images/UI/TheDivide_SongCard.png"),
-    "TheWorldsGreatestGameShow2_ost.mp3": SongsPopouts("assets/images/UI/TheWorldsGreatestGameShow2_SongCard.png")
+    "TheWorldsGreatestGameShow2_ost.mp3": SongsPopouts("assets/images/UI/TheWorldsGreatestGameShow2_SongCard.png"),
+    "IntoTheUnknown_ost.mp3": SongsPopouts("assets/images/UI/IntoTheUnknown_SongCard.png"),
+    "TheNextStage_ost.mp3": SongsPopouts("assets/images/UI/TheNextStage_SongCard.png")
 }
 
 tamas = [
@@ -625,22 +725,21 @@ MAX_COINS = 5
 required_clicks_for_boost = 250
 current_music_credits = None
 isLoading = False
+isReached1000clicks = False
 seen_tamas = set()
 tama_on_screen = tamas[0]
 
 boost_coin = 1
 coin_boost_active = False
 
-total_clicks = 0
+total_clicks = 999
 boost = 1
 NamaCoins = 0
-
-greens_in_bag = 0
 
 show_boost = False
 next_mode = ""
 
-# play_next_soundtrack()
+play_next_soundtrack()
 print("Game Loaded, Booting up...")
 
 running = True
@@ -670,7 +769,7 @@ while running:
                 isLoading = True
                 next_mode = "credits"
                 cooldown_timer.reset()
-            if credits_back_button_rect.collidepoint(event.pos) and mode == "credits":
+            if credits_back_button.rect.collidepoint(event.pos) and mode == "credits":
                 isLoading = True
                 next_mode = "menu"
                 cooldown_timer.reset()
@@ -682,7 +781,7 @@ while running:
                 next_mode = "achievements"
                 cooldown_timer.reset()
             if (
-                achievements_back_button_rect.collidepoint(event.pos)
+                achievements_back_button.rect.collidepoint(event.pos)
                 and mode == "achievements"
             ):
                 isLoading = True
@@ -696,7 +795,7 @@ while running:
                 next_mode = "settings"
                 cooldown_timer.reset()
             if (
-                settings_back_button_rect.collidepoint(event.pos)
+                settings_back_button.rect.collidepoint(event.pos)
                 and mode == "settings"
             ):
                 isLoading = True
@@ -734,7 +833,7 @@ while running:
                 button_to_minigame_from_game.rect.collidepoint(event.pos)
                 and mode == "game"
             ):
-                if total_clicks >= 1000:
+                if total_clicks >= 1000 or isReached1000clicks:
                     isLoading = True
                     next_mode = "minigame"
                     cooldown_timer.reset()
@@ -938,28 +1037,28 @@ while running:
                 next_mode = "NamaPass"
                 cooldown_timer.reset()
             if (
-                trentila_button_rect.collidepoint(event.pos)
+                trentila_button.rect.collidepoint(event.pos)
                 and mode == "sponsors_choice"
             ):
                 isLoading = True
                 next_mode = "trentila_sponsor_quote"
                 cooldown_timer.reset()
             if (
-                ospuze_button_rect.collidepoint(event.pos)
+                ospuze_button.rect.collidepoint(event.pos)
                 and mode == "sponsors_choice"
             ):
                 isLoading = True
                 next_mode = "ospuze_sponsor_quote"
                 cooldown_timer.reset()
             if (
-                alfa_acta_button_rect.collidepoint(event.pos)
+                alfa_acta_button.rect.collidepoint(event.pos)
                 and mode == "sponsors_choice"
             ):
                 isLoading = True
                 next_mode = "alfa_acta_sponsor_quote"
                 cooldown_timer.reset()
             if (
-                vaiiya_button_rect.collidepoint(event.pos)
+                vaiiya_button.rect.collidepoint(event.pos)
                 and mode == "sponsors_choice"
             ):
                 isLoading = True
@@ -1022,7 +1121,7 @@ while running:
             font_25.render("Зелёное поле", True, BLACK),
             (button_to_minigame_from_game.x + 16, button_to_minigame_from_game.y + 15)
         )
-        if total_clicks < 1000:
+        if total_clicks < 1000 and not isReached1000clicks:
             screen.blit(
                 locked_button_gfield,
                 (button_to_minigame_from_game.x, button_to_minigame_from_game.y)
@@ -1095,8 +1194,8 @@ while running:
             (button_to_settings_from_menu.x + 20, button_to_settings_from_menu.y + 10),
         )
         screen.blit( 
-            font_30.render("Достижения", True, BLACK),
-            (button_to_game_from_menu.x + 5, button_to_game_from_menu.y + 80.5),
+            font_25.render("Достижения", True, BLACK),
+            (button_to_game_from_menu.x + 18, button_to_game_from_menu.y + 85.5),
         )
         screen.blit(
             
@@ -1110,36 +1209,44 @@ while running:
         )
     if mode == "achievements":
         screen.blit(achievements_bg_ru, (0, 0)) 
-        screen.blit(achievements_back_button, achievements_back_button_rect)
+        achievements_back_button.draw(screen)
         cfa_collect_all_tamas.draw(screen)
         cfa_sanic_popout.draw(screen)
         cfa_IT.draw(screen)
         cfa_1000_clicks.draw(screen)
         cfa_10000_clicks.draw(screen)
         cfa_1000000_clicks.draw(screen)
-        screen.blit(
-            font_25.render("Нажмите чтобы вернуться в Меню", True, BLACK),
-            (
-                achievements_back_button_rect.x + 12,
-                achievements_back_button_rect.y + 14,
-            ),
+        draw_button_text(
+            screen,
+            "Нажмите чтобы вернуться в Меню",
+            font_25,
+            BLACK,
+            achievements_back_button,
+            (12, 14),
         )
     if mode == "credits":
         screen.blit(credits_bg_ru, (0, 0))
-        screen.blit(credits_back_button, credits_back_button_rect)
-        screen.blit(
-            font_25.render("Нажмите чтобы вернуться в Меню", True, BLACK),
-            (credits_back_button_rect.x + 15,
-            credits_back_button_rect.y + 14),
+        credits_back_button.draw(screen)
+        draw_button_text(
+            screen,
+            "Нажмите чтобы вернуться в Меню",
+            font_25,
+            BLACK,
+            credits_back_button,
+            (15, 14),
         )
     if mode == "settings":
         screen.blit(settings_bg, (0, 0))
-        screen.blit(settings_back_button, settings_back_button_rect)
+        settings_back_button.draw(screen)
         screen.blit(volume_icon, (420 + 20, 57))
         screen.blit(volume_icon, (400 + 20, 218))
-        screen.blit(
-            font_25.render("Нажмите чтобы вернуться в Меню", True, BLACK),
-            (settings_back_button_rect.x + 16, settings_back_button_rect.y + 14),
+        draw_button_text(
+            screen,
+            "Нажмите чтобы вернуться в Меню",
+            font_25,
+            BLACK,
+            settings_back_button,
+            (16, 14),
         )
 
         screen.blit(
@@ -1413,13 +1520,14 @@ while running:
             ((button_back_from_sponsors_choice.x + 52.5, button_back_from_sponsors_choice.y + 10.5),)
         )
 
-        screen.blit(trentila_button, trentila_button_rect)
-        screen.blit(ospuze_button, ospuze_button_rect)
-        screen.blit(alfa_acta_button, alfa_acta_button_rect)
-        screen.blit(vaiiya_button, vaiiya_button_rect)
+        trentila_button.draw(screen)
+        ospuze_button.draw(screen)
+        alfa_acta_button.draw(screen)
+        vaiiya_button.draw(screen)
 
     #sponsors_quotes
     if mode == "trentila_sponsor_quote":
+        screen.fill(GREY)
         button_back_from_sponsors_quotes.draw(screen)
         screen.blit(trentila_quote, (50, 65))
         screen.blit(
@@ -1428,6 +1536,7 @@ while running:
         )
     
     if mode == "ospuze_sponsor_quote":
+        screen.fill(GREY)
         button_back_from_sponsors_quotes.draw(screen)
         screen.blit(ospuze_quote, (50, 65))
         screen.blit(
@@ -1436,6 +1545,7 @@ while running:
         )
     
     if mode == "alfa_acta_sponsor_quote":
+        screen.fill(GREY)
         button_back_from_sponsors_quotes.draw(screen)
         screen.blit(alfa_acta_quote, (50, 65))
         screen.blit(
@@ -1444,6 +1554,7 @@ while running:
         )
     
     if mode == "vaiiya_sponsor_quote":
+        screen.fill(GREY)
         button_back_from_sponsors_quotes.draw(screen)
         screen.blit(vaiiya_quote, (50, 65))
         screen.blit(
@@ -1462,7 +1573,10 @@ while running:
             mouse_click_sound.play()
             mode = next_mode
             isLoading = False
-        
+    
+    if total_clicks >= 1000:
+        isReached1000clicks = True
+
     if (
         mode != "menu"
         and mode != "credits"

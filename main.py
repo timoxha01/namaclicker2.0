@@ -7,7 +7,7 @@ pygame.mixer.init()
 print("Loading...")
 
 W, H = 1000, 800
-FPS = 60
+FPS = 50
 mode = "menu"
 
 GAME_FONT = "assets/fonts/Tiny5-Regular.ttf"
@@ -746,7 +746,7 @@ namapass_minigun_reward = NamaPassItemsCollect(142, 193)
 
 coins = []
 MAX_COINS = 5
-required_clicks_for_boost = 250
+required_clicks_for_boost = 200
 current_music_credits = None
 isLoading = False
 isReached1000clicks = False

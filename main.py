@@ -24,7 +24,8 @@ SOUNDTRACKS = [
     "assets/sounds/osts/TheDivide_ost.mp3",
     "assets/sounds/osts/TheWorldsGreatestGameShow2_ost.mp3",
     "assets/sounds/osts/IntoTheUnknown_ost.mp3",
-    "assets/sounds/osts/TheNextStage_ost.mp3"
+    "assets/sounds/osts/TheNextStage_ost.mp3",
+    "assets/sounds/osts/ElIndomable_ost.mp3"
 ]
 
 MUSIC_END_EVENT = pygame.USEREVENT + 1
@@ -672,7 +673,8 @@ song_popouts = {
     "TheDivide_ost.mp3": SongsPopouts("assets/images/UI/TheDivide_SongCard.png"),
     "TheWorldsGreatestGameShow2_ost.mp3": SongsPopouts("assets/images/UI/TheWorldsGreatestGameShow2_SongCard.png"),
     "IntoTheUnknown_ost.mp3": SongsPopouts("assets/images/UI/IntoTheUnknown_SongCard.png"),
-    "TheNextStage_ost.mp3": SongsPopouts("assets/images/UI/TheNextStage_SongCard.png")
+    "TheNextStage_ost.mp3": SongsPopouts("assets/images/UI/TheNextStage_SongCard.png"),
+    "ElIndomable_ost.mp3": SongsPopouts("assets/images/UI/ElIndomable_SongCard.png")
 }
 
 tamas = [

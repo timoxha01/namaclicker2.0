@@ -51,6 +51,8 @@ long_button_img = pygame.image.load(
     "assets/images/UI/button_long.png"
 ).convert_alpha()
 
+
+
 NamaCoin_image = pygame.image.load("assets/images/UI/NamaCoin.png")
 angle_frame = pygame.image.load("assets/images/UI/angle_frame.png").convert_alpha()
 
@@ -65,6 +67,10 @@ shelf_bg = pygame.image.load("assets/images/UI/shelf_bg.png")
 shop_bg = pygame.image.load("assets/images/UI/shop_bg.png")
 
 namapass_bg = pygame.image.load("assets/images/UI/namapass_bg.png")
+
+tutorial_gfield = pygame.image.load("assets/images/UI/tutorial_gfield.png")
+
+exc_mark = pygame.image.load("assets/images/UI/exc_mark.png")
 
 beluash_preview = pygame.image.load("assets/images/UI/beluash_preview.png").convert_alpha()
 contestant_preview = pygame.image.load("assets/images/UI/contestant_preview.png").convert_alpha()
@@ -695,6 +701,8 @@ button_to_sponsors_from_NamaPass = Button(800, 720)
 button_back_from_sponsors_choice = Button(20, 720)
 button_back_from_sponsors_quotes = Button(20, 720)
 
+button_got_it = Button(471 - (183 // 2) + 45, 730)
+
 button_buy_bear = Button((W // 2) - (183 // 2), 550)
 button_buy_beluash = Button((W // 2) - (183 // 2), 550)
 button_buy_contestant = Button((W // 2) - (183 // 2), 550)
@@ -724,13 +732,14 @@ required_clicks_for_boost = 250
 current_music_credits = None
 isLoading = False
 isReached1000clicks = False
+isTutorialWatched = False
 seen_tamas = set()
 tama_on_screen = tamas[0]
 
 boost_coin = 1
 coin_boost_active = False
 
-total_clicks = 999
+total_clicks = 1110
 boost = 1
 NamaCoins = 0
 
@@ -833,7 +842,10 @@ while running:
             ):
                 if total_clicks >= 1000 or isReached1000clicks:
                     isLoading = True
-                    next_mode = "minigame"
+                    if isTutorialWatched:
+                        next_mode = "minigame"
+                    else:
+                        next_mode = "tutorial_gfield"
                     cooldown_timer.reset()
             if (
                 button_back_from_minigame.rect.collidepoint(event.pos)
@@ -904,7 +916,15 @@ while running:
                 isLoading = True
                 next_mode = "game"
                 cooldown_timer.reset()
-            
+            if (
+                button_got_it.rect.collidepoint(event.pos)
+                and mode == "tutorial_gfield"
+            ):
+                isLoading = True
+                isTutorialWatched = True
+                next_mode = "minigame"
+                cooldown_timer.reset()
+
             #namapass
             if (
                 namapass_100_coins.rect.collidepoint(event.pos)
@@ -1275,7 +1295,7 @@ while running:
             font_40.render("-", True, BLACK),
             (sdtrack_button_minus.rect.x + 80, sdtrack_button_minus.rect.y + 6)
         )
-    if mode == "minigame":
+    if mode == "minigame" and isTutorialWatched:
         screen.blit(field_bg, (0, 0))
         button_back_from_minigame.draw(screen)
         screen.blit(
@@ -1558,6 +1578,13 @@ while running:
         screen.blit(
             font_30.render("Назад", True, BLACK),
             ((button_back_from_sponsors_quotes.x + 52.5, button_back_from_sponsors_quotes.y + 10.5),)
+        )
+    if not isTutorialWatched and mode == "tutorial_gfield":
+        screen.blit(tutorial_gfield, (0, 0))
+        button_got_it.draw(screen)
+        screen.blit(
+            font_30.render("Понятно", True, BLACK),
+            ((button_got_it.x + 42.5, button_got_it.y + 10.5),)
         )
 
     for pop in song_popouts.values():

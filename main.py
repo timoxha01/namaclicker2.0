@@ -691,8 +691,9 @@ tamas = [
     Namas("vibe", "assets/images/tamas/vibe.png", 0.03),
     Namas("evil", "assets/images/tamas/evil.png", 0.01),
     Namas("demon", "assets/images/tamas/demon.png", 0.01),
+    Namas("boykisser", "assets/images/tamas/boykisser.png", 0.01),
     Namas("sanic", "assets/images/tamas/sanic_ee.png", 0.001),
-    Namas("glitch", "assets/images/tamas/glitch_ee.png", 0.001),
+    Namas("glitch", "assets/images/tamas/glitch_ee.png", 0.001)
 ]
 
 banner = NamaPassbanner()

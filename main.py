@@ -1146,7 +1146,6 @@ while running:
     namaPlayer.x = max(0, min(1000 - namaPlayer.rect.width, namaPlayer.x))
     namaPlayer.y = max(0, min(800 - namaPlayer.rect.height, namaPlayer.y))
 
-    # Notifications (sound + state) should update in any mode
     if namapass_5min_timer.done() and not notif_5_shown:
         notif_5_shown = True
         nofitication_sound.play()

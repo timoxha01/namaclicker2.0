@@ -111,6 +111,7 @@ volume_changing_sound = pygame.mixer.Sound("assets/sounds/sfxes/volume_change_so
 purchase_success = pygame.mixer.Sound("assets/sounds/sfxes/purchase_success.mp3")
 purchase_failed = pygame.mixer.Sound("assets/sounds/sfxes/purchase_failed.mp3")
 coins_collecting = pygame.mixer.Sound("assets/sounds/sfxes/NamaCoins_collecting.mp3")
+nofitication_sound = pygame.mixer.Sound("assets/sounds/sfxes/announcement.mp3")
 
 class NamaPassbanner:
     def __init__(self):
@@ -433,6 +434,20 @@ class HoverImage:
 
         screen.blit(self.image, self.rect)
 
+def ShowNofitication(sc):
+    global notif_visible, notif_timer, exc_mark
+    if not notif_visible:
+        return
+    if notif_timer.done():
+        notif_visible = False
+        return
+    sc.blit(exc_mark, (144, 196))
+
+def TriggerNotification():
+    global notif_visible, notif_timer
+    notif_visible = True
+    notif_timer.reset()
+
 def draw_button_text(screen, text, font, color, button, offset):
     text_surface = font.render(text, True, color)
     scale = button.scale
@@ -489,7 +504,7 @@ class Achievements:
         )
         self.y_pop_out = self.pop_rect.y
         self.achievement_sound = pygame.mixer.Sound(
-            "assets/sounds/sfxes/announcement.mp3"
+            "assets/sounds/sfxes/nofitication_sound.mp3"
             )
         self.image = pygame.image.load(
             "assets/images/UI/hidden_achi.png"
@@ -684,10 +699,6 @@ button_to_game_from_menu = Button((W // 2) - (183 // 2), (H // 2) - (58 // 2))
 button_to_credits_from_menu = Button(800, 720)
 button_to_achievements_from_menu = Button((W // 2) - (183 // 2), (H // 2) + 40)
 button_to_settings_from_menu = Button((W // 2) - (183 // 2), (H // 2) + 110)
-sfx_button_plus = Button(527, 114)
-sfx_button_minus = Button(289, 114)
-sdtrack_button_plus = Button(527, 275)
-sdtrack_button_minus = Button(289, 275)
 button_boost = Button(20, 650)
 button_to_minigame_from_game = Button(20, 580)
 button_back_from_minigame = Button(20, 720)
@@ -700,6 +711,11 @@ button_back_from_battle_pass = Button(20, 720)
 button_to_sponsors_from_NamaPass = Button(800, 720)
 button_back_from_sponsors_choice = Button(20, 720)
 button_back_from_sponsors_quotes = Button(20, 720)
+
+sfx_button_plus = Button(527, 114)
+sfx_button_minus = Button(289, 114)
+sdtrack_button_plus = Button(527, 275)
+sdtrack_button_minus = Button(289, 275)
 
 button_got_it = Button(471 - (183 // 2) + 45, 730)
 
@@ -733,13 +749,21 @@ current_music_credits = None
 isLoading = False
 isReached1000clicks = False
 isTutorialWatched = False
+notif_visible = False
+notif_timer = Timer(1500)
+notif_5_shown = False
+notif_10_shown = False
+notif_15_shown = False
+notif_20_shown = False
+notif_25_shown = False
+notif_30_shown = False
 seen_tamas = set()
 tama_on_screen = tamas[0]
 
 boost_coin = 1
 coin_boost_active = False
 
-total_clicks = 1110
+total_clicks = 0
 boost = 1
 NamaCoins = 0
 
@@ -1108,28 +1132,56 @@ while running:
                 add_clicks()
 
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_LEFT] and mode == "minigame":
+    if keys[pygame.K_LEFT] or keys[pygame.K_a] and mode == "minigame":
         namaPlayer.x -= 3
-    if keys[pygame.K_RIGHT] and mode == "minigame":
+    if keys[pygame.K_RIGHT] or keys[pygame.K_d] and mode == "minigame":
         namaPlayer.x += 3
-    if keys[pygame.K_UP] and mode == "minigame":
+    if keys[pygame.K_UP] or keys[pygame.K_w] and mode == "minigame":
         namaPlayer.y -= 3
-    if keys[pygame.K_DOWN] and mode == "minigame":
+    if keys[pygame.K_DOWN] or keys[pygame.K_s] and mode == "minigame":
         namaPlayer.y += 3
 
     namaPlayer.x = max(0, min(1000 - namaPlayer.rect.width, namaPlayer.x))
     namaPlayer.y = max(0, min(800 - namaPlayer.rect.height, namaPlayer.y))
 
+    # Notifications (sound + state) should update in any mode
+    if namapass_5min_timer.done() and not notif_5_shown:
+        notif_5_shown = True
+        nofitication_sound.play()
+        TriggerNotification()
+    if namapass_10min_timer.done() and not notif_10_shown:
+        notif_10_shown = True
+        nofitication_sound.play()
+        TriggerNotification()
+    if namapass_15min_timer.done() and not notif_15_shown:
+        notif_15_shown = True
+        nofitication_sound.play()
+        TriggerNotification()
+    if namapass_20min_timer.done() and not notif_20_shown:
+        notif_20_shown = True
+        nofitication_sound.play()
+        TriggerNotification()
+    if namapass_25min_timer.done() and not notif_25_shown:
+        notif_25_shown = True
+        nofitication_sound.play()
+        TriggerNotification()
+    if namapass_30min_timer.done() and not notif_30_shown:
+        notif_30_shown = True
+        nofitication_sound.play()
+        TriggerNotification()
+
     # DRAW MODE
     if mode == "game":
         screen.fill(GREY)
         button_boost.draw(screen)
+
         button_to_shelf_from_game.draw(screen)
 
         banner.change_banner()
         banner.update()
         banner.draw(screen)
 
+        ShowNofitication(screen)
         button_to_minigame_from_game.draw(screen)
         screen.blit(
             font_30.render("Полка", True, BLACK),

@@ -1,6 +1,9 @@
 import random
 import pygame
 
+import os
+import json
+
 pygame.init()
 pygame.mixer.init()
 
@@ -11,6 +14,8 @@ FPS = 50
 mode = "menu"
 
 GAME_FONT = "assets/fonts/Tiny5-Regular.ttf"
+SAVE_FILE = "data.json"
+
 VOLUME = 0.5
 VOLUME_SDTRACK = 0.5
 VOLUME_STEP = 0.05
@@ -652,6 +657,29 @@ def get_next_track():
         random.shuffle(music_loop)
     return music_loop.pop()
 
+def load_progress():
+    if not os.path.exists(SAVE_FILE):
+        return {"total_clicks": 0, "namacoins": 0, "boost": 1}
+    try:
+        with open(SAVE_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return {
+            "total_clicks": int(data.get("total_clicks", 0)),
+            "namacoins": int(data.get("namacoins", 0)),
+            "boost": int(data.get("boost", 1)),
+        }
+    except (json.JSONDecodeError, OSError, ValueError):
+        return {"total_clicks": 0, "namacoins": 0, "boost": 1}
+
+def save_progress(total_clicks, namacoins, boost):
+    data = {
+        "total_clicks": int(total_clicks),
+        "namacoins": int(namacoins),
+        "boost": int(boost),
+    }
+    with open(SAVE_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
 cfa_collect_all_tamas = Achievements("Собрать все NamaTama", 64, 80)
 cfa_sanic_popout = Achievements("Встретить Sanic", 372, 80)
 cfa_IT = Achievements("Встретить ...", 679, 80)
@@ -766,9 +794,10 @@ tama_on_screen = tamas[0]
 boost_coin = 1
 coin_boost_active = False
 
-total_clicks = 0
-boost = 1
-NamaCoins = 0
+progress = load_progress()
+total_clicks = progress["total_clicks"]
+NamaCoins = progress["namacoins"]
+boost = progress["boost"]
 
 show_boost = False
 next_mode = ""
@@ -780,6 +809,7 @@ running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            save_progress(total_clicks, NamaCoins, boost)
             pygame.mixer.music.stop()
             byebye_nama_sound.play()
             pygame.time.delay(int(byebye_nama_sound.get_length() * 1000))

@@ -1,8 +1,6 @@
+from gc import collect
 import random
 import pygame
-
-import os
-import json
 
 pygame.init()
 pygame.mixer.init()
@@ -11,7 +9,7 @@ print("Loading...")
 
 W, H = 1000, 800
 FPS = 50
-mode = "menu"
+mode = "exchanger"
 
 GAME_FONT = "assets/fonts/Tiny5-Regular.ttf"
 
@@ -56,8 +54,6 @@ long_button_img = pygame.image.load(
     "assets/images/UI/button_long.png"
 ).convert_alpha()
 
-
-
 NamaCoin_image = pygame.image.load("assets/images/UI/NamaCoin.png")
 angle_frame = pygame.image.load("assets/images/UI/angle_frame.png").convert_alpha()
 
@@ -76,6 +72,10 @@ namapass_bg = pygame.image.load("assets/images/UI/namapass_bg.png")
 tutorial_gfield = pygame.image.load("assets/images/UI/tutorial_gfield.png")
 
 exc_mark = pygame.image.load("assets/images/UI/exc_mark.png")
+
+seoul_bg = pygame.image.load("assets/images/UI/seoul_bg.png")
+
+exchanger_bg = pygame.image.load("assets/images/UI/exchanger_bg.png")
 
 beluash_preview = pygame.image.load("assets/images/UI/beluash_preview.png").convert_alpha()
 contestant_preview = pygame.image.load("assets/images/UI/contestant_preview.png").convert_alpha()
@@ -610,6 +610,15 @@ def add_clicks():
         random.randint(0, H - 50),
     )
 
+class Course:
+    def __init__(self) -> None:
+        self.course_coins = 0.0
+        self.course_clicks = 0.0
+
+    def courses_update(self):
+        self.course_coins = round(random.uniform(0.81, 1.24), 3)
+        self.course_clicks = round(random.uniform(0.12, 0.42), 3)
+        return self.course_coins, self.course_clicks
 
 def choose_tama(tamas):
     total_chance = sum(t.chance for t in tamas)
@@ -730,6 +739,12 @@ button_buy_bear = Button((W // 2) - (183 // 2), 550)
 button_buy_beluash = Button((W // 2) - (183 // 2), 550)
 button_buy_contestant = Button((W // 2) - (183 // 2), 550)
 
+button_exchanging = Button(400, 40)
+button_exchanging_back_to_shop = Button(400, 40)
+
+button_exchange_to_coins = Button(500 - (183 // 2), 310)
+button_exchange_to_clicks = Button(500 - (183 // 2), 470)
+
 clicking_text_timer = Timer(200)
 cooldown_timer = Timer(1)
 coin_spawn_timer = Timer(2000)
@@ -749,9 +764,13 @@ namapass_trentila_reward = NamaPassItemsCollect(726, 194)
 namapass_ospuze_reward = NamaPassItemsCollect(434, 194)
 namapass_minigun_reward = NamaPassItemsCollect(142, 193)
 
+course = Course()
+course.courses_update()
+course_timer = Timer(60000)
+
 coins = []
 MAX_COINS = 5
-required_clicks_for_boost = 200
+required_clicks_for_boost = 100
 current_music_credits = None
 isLoading = False
 isReached1000clicks = False
@@ -956,6 +975,44 @@ while running:
                 next_mode = "minigame"
                 cooldown_timer.reset()
 
+            if (
+                button_exchanging.rect.collidepoint(event.pos)
+                and mode == "shop"
+            ):
+                isLoading = True
+                next_mode = "exchanger"
+                cooldown_timer.reset()
+
+            if (
+                button_exchanging_back_to_shop.rect.collidepoint(event.pos)
+                and mode == "exchanger"
+            ):
+                isLoading = True
+                next_mode = "shop"
+                cooldown_timer.reset()
+
+            # обменник
+            if (
+                button_exchange_to_coins.rect.collidepoint(event.pos)
+                and mode == "exchanger"
+            ):
+                if total_clicks > 0:
+                    gained_coins = int(total_clicks * course.course_coins)
+                    NamaCoins += gained_coins
+                    total_clicks = 0
+                    coins_collecting.play()
+
+            if (
+                button_exchange_to_clicks.rect.collidepoint(event.pos)
+                and mode == "exchanger"
+            ):
+                if NamaCoins > 0:
+                    gained_clicks = int(NamaCoins * course.course_clicks)
+                    total_clicks += gained_clicks
+                    NamaCoins = 0
+                    coins_collecting.play()
+       
+
             #namapass
             if (
                 namapass_100_coins.rect.collidepoint(event.pos)
@@ -1013,7 +1070,7 @@ while running:
                 and not teddy_bear.isBought
             ):
                 teddy_bear.buy()
-            
+
             if (
                 button_buy_beluash.rect.collidepoint(event.pos)
                 and mode == "beluash_preview"
@@ -1178,7 +1235,7 @@ while running:
 
     # DRAW MODE
     if mode == "game":
-        screen.fill(GREY)
+        screen.blit(seoul_bg, (0, 0))
         button_boost.draw(screen)
 
         button_to_shelf_from_game.draw(screen)
@@ -1426,7 +1483,12 @@ while running:
         button_back_from_shop.draw(screen)
         screen.blit(
             font_30.render("Назад", True, BLACK),
-            ((button_back_from_shop.x + 52.5, button_back_from_shop.y + 10.5),)
+            (button_back_from_shop.x + 52.5, button_back_from_shop.y + 10.5)
+        )
+        button_exchanging.draw(screen)
+        screen.blit(
+            font_30.render("Обменник", True, BLACK),
+            (button_exchanging.x + 25, button_exchanging.y + 10.5)
         )
         beluash.draw(screen)
         energy_drink.draw(screen)
@@ -1643,6 +1705,45 @@ while running:
         screen.blit(
             font_30.render("Понятно", True, BLACK),
             ((button_got_it.x + 42.5, button_got_it.y + 10.5),)
+        )
+
+    if mode == "exchanger":
+        screen.blit(exchanger_bg, (0, 0))
+        button_exchanging_back_to_shop.draw(screen)
+        button_exchange_to_coins.draw(screen)
+        button_exchange_to_clicks.draw(screen)
+
+        if course_timer.done():
+            course.courses_update()
+            course_timer.reset()
+
+        screen.blit(
+            font_30.render("Назад", True, BLACK),
+            (button_exchanging_back_to_shop.x + 52.5, button_exchanging_back_to_shop.y + 10.5)
+        )
+        screen.blit(
+            font_40.render("Клики → NamaCoins", True, BLACK),
+            (320, 230)
+        )
+        screen.blit(
+            font_40.render("NamaCoins → Клики", True, BLACK),
+            (320, 400)
+        )
+        screen.blit(
+            font_30.render("Обменять", True, BLACK),
+            (button_exchange_to_coins.x + 25, button_exchange_to_coins.y + 10.5)
+        )
+        screen.blit(
+            font_30.render("Обменять", True, BLACK),
+            (button_exchange_to_clicks.x + 25, button_exchange_to_clicks.y + 10.5)
+        )
+        screen.blit(
+            font_30.render(f"Курс: {course.course_clicks}", True, BLACK),
+            (150, button_exchange_to_clicks.y + 10.5)
+        )
+        screen.blit(
+            font_30.render(f"Курс: {course.course_coins}", True, BLACK),
+            (150, button_exchange_to_coins.y + 10.5)
         )
 
     for pop in song_popouts.values():

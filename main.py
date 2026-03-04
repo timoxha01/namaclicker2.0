@@ -794,6 +794,10 @@ tama_on_screen = tamas[0]
 boost_coin = 1
 coin_boost_active = False
 
+progress = load_progress()
+total_clicks = progress["total_clicks"]
+NamaCoins = progress["namacoins"]
+boost = progress["boost"]
 
 
 show_boost = False

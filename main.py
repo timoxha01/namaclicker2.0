@@ -794,10 +794,7 @@ tama_on_screen = tamas[0]
 boost_coin = 1
 coin_boost_active = False
 
-progress = load_progress()
-total_clicks = progress["total_clicks"]
-NamaCoins = progress["namacoins"]
-boost = progress["boost"]
+
 
 show_boost = False
 next_mode = ""
@@ -809,7 +806,6 @@ running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            save_progress(total_clicks, NamaCoins, boost)
             pygame.mixer.music.stop()
             byebye_nama_sound.play()
             pygame.time.delay(int(byebye_nama_sound.get_length() * 1000))

@@ -978,6 +978,7 @@ while running:
             if (
                 button_exchanging.rect.collidepoint(event.pos)
                 and mode == "shop"
+                and isReached1000clicks
             ):
                 isLoading = True
                 next_mode = "exchanger"
@@ -1485,11 +1486,12 @@ while running:
             font_30.render("Назад", True, BLACK),
             (button_back_from_shop.x + 52.5, button_back_from_shop.y + 10.5)
         )
-        button_exchanging.draw(screen)
-        screen.blit(
-            font_30.render("Обменник", True, BLACK),
-            (button_exchanging.x + 25, button_exchanging.y + 10.5)
-        )
+        if isReached1000clicks:
+            button_exchanging.draw(screen)
+            screen.blit(
+                font_30.render("Обменник", True, BLACK),
+                (button_exchanging.x + 25, button_exchanging.y + 10.5)
+            )
         beluash.draw(screen)
         energy_drink.draw(screen)
         minigun.draw(screen)

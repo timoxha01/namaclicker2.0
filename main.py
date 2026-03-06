@@ -231,23 +231,17 @@ class Namas:
         self.clicks += amount * boost
 
     def update(self):
-        # лёгкое качание по горизонтали
         if self.sway_time > 0.0:
-            # уменьшаем оставшееся время
             self.sway_time -= 1.0 / FPS
-            # фаза от 0 до 1
             t = max(0.0, self.sway_time / self.sway_duration)
-            # чем ближе к концу — тем меньше амплитуда
             offset = math.sin((1.0 - t) * math.pi * 4) * self.sway_amplitude * t
             self.pos = (self.base_pos[0] + offset, self.base_pos[1])
         else:
             self.pos = self.base_pos
 
-        # пересчёт прямоугольника (размеры не меняем)
         self.rect = self.image.get_rect(center=self.pos)
 
     def pulse(self):
-        # запуск лёгкого качания при клике (без изменения размера)
         self.sway_time = self.sway_duration
 
 class NamaPlayer():

@@ -1309,7 +1309,6 @@ while running:
             cfa_sanic_popout.timer.reset()
             sanic_sound.play()
         if show_boost and mode == "game":
-            # Небольшая тряска текста "+boost"
             shake_x = random.randint(-2, 2)
             shake_y = random.randint(-2, 2)
             boost_pos_shaken = (boost_pos[0] + shake_x, boost_pos[1] + shake_y)

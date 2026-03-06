@@ -792,12 +792,14 @@ tama_on_screen = tamas[0]
 boost_coin = 1
 coin_boost_active = False
 
-total_clicks = 0
-NamaCoins = 0
+total_clicks = 10000
+NamaCoins = 10000
 boost = 1
 
 last_total_clicks_for_shake = 0
 clicks_shake_timer = Timer(200)
+last_nama_coins_for_shake = 0
+nama_shake_timer = Timer(200)
 
 show_boost = False
 next_mode = ""
@@ -1790,6 +1792,10 @@ while running:
         last_total_clicks_for_shake = total_clicks
         clicks_shake_timer.reset()
 
+    if NamaCoins != last_nama_coins_for_shake:
+        last_nama_coins_for_shake = NamaCoins
+        nama_shake_timer.reset()
+
     if total_clicks >= 1000:
         isReached1000clicks = True
 
@@ -1806,12 +1812,17 @@ while running:
         screen.blit(angle_frame, (776, 0))
         screen.blit(NamaCoin_image, (792, 0))
         screen.blit(click_image, (792, 47))
-        screen.blit(
-            font_30.render(f": {NamaCoins}", True, BLACK),
-            (860, 13)
-        )
 
+        # Тряска NamaCoins при изменении
+        coins_text = font_30.render(f": {NamaCoins}", True, BLACK)
+        if not nama_shake_timer.done():
+            shake_x = random.randint(-1, 1)
+            shake_y = random.randint(-1, 1)
+            screen.blit(coins_text, (860 + shake_x, 13 + shake_y))
+        else:
+            screen.blit(coins_text, (860, 13))
 
+        # Тряска total_clicks при изменении
         clicks_text = font_30.render(f": {int(total_clicks)}", True, BLACK)
         if not clicks_shake_timer.done():
             shake_x = random.randint(-1, 1)

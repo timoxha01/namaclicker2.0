@@ -617,8 +617,8 @@ class Course:
         self.course_clicks = 0.0
 
     def courses_update(self):
-        self.course_coins = round(random.uniform(0.81, 1.24), 3)
-        self.course_clicks = round(random.uniform(0.12, 0.42), 3)
+        self.course_clicks = float(EXCHANGE_CLICKS_PER_NAMACOIN)
+        self.course_coins = round(1.0 / EXCHANGE_CLICKS_PER_NAMACOIN, 6)
         return self.course_coins, self.course_clicks
 
 def choose_tama(tamas):
@@ -750,6 +750,8 @@ clicking_text_timer = Timer(200)
 cooldown_timer = Timer(1)
 coin_spawn_timer = Timer(2000)
 coin_boost_timer = Timer(5000)
+
+EXCHANGE_CLICKS_PER_NAMACOIN = 400
 
 namapass_5min_timer = Timer(300000)
 namapass_10min_timer = Timer(600000)
@@ -1010,20 +1012,27 @@ while running:
                 and mode == "exchanger"
             ):
                 if total_clicks > 0:
-                    gained_coins = int(total_clicks * course.course_coins)
-                    NamaCoins += gained_coins
-                    total_clicks = 0
-                    coins_collecting.play()
+                    # 1 NamaCoin = EXCHANGE_CLICKS_PER_NAMACOIN кликов
+                    gained_coins = int(total_clicks // EXCHANGE_CLICKS_PER_NAMACOIN)
+                    if gained_coins > 0:
+                        NamaCoins += gained_coins
+                        total_clicks = int(total_clicks % EXCHANGE_CLICKS_PER_NAMACOIN)
+                        coins_collecting.play()
+                    else:
+                        purchase_failed.play()
 
             if (
                 button_exchange_to_clicks.rect.collidepoint(event.pos)
                 and mode == "exchanger"
             ):
                 if NamaCoins > 0:
-                    gained_clicks = int(NamaCoins * course.course_clicks)
-                    total_clicks += gained_clicks
-                    NamaCoins = 0
-                    coins_collecting.play()
+                    gained_clicks = int(NamaCoins * EXCHANGE_CLICKS_PER_NAMACOIN)
+                    if gained_clicks > 0:
+                        total_clicks += gained_clicks
+                        NamaCoins = 0
+                        coins_collecting.play()
+                    else:
+                        purchase_failed.play()
        
 
             #namapass

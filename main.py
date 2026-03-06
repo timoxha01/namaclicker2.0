@@ -77,8 +77,6 @@ tutorial_gfield = pygame.image.load("assets/images/UI/tutorial_gfield.png")
 
 exc_mark = pygame.image.load("assets/images/UI/exc_mark.png")
 
-seoul_bg = pygame.image.load("assets/images/UI/seoul_bg.png")
-
 exchanger_bg = pygame.image.load("assets/images/UI/exchanger_bg.png")
 
 click_image = pygame.image.load("assets/images/UI/click_image.png")
@@ -243,6 +241,36 @@ class Namas:
 
     def pulse(self):
         self.sway_time = self.sway_duration
+
+class Background:
+    def __init__(self, bg_path, price, buy_button_path, x_button, y_button) -> None:
+        self.bg_image = pygame.image.load(bg_path).convert()
+        self.price = price
+        self.isBought = False
+        self.equipped = False
+        self.x_button = x_button
+        self.y_button = y_button
+        self.buy_button_image = pygame.image.load(buy_button_path).convert_alpha()
+        self.button_rect = self.buy_button_image.get_rect(topleft=(x_button, y_button))
+
+    def draw_button(self, screen):
+        screen.blit(self.buy_button_image, self.button_rect)
+
+    def buy(self):
+        global NamaCoins
+        if NamaCoins >= self.price:
+            if not self.isBought:
+                purchase_success.play()
+                self.isBought = True
+                NamaCoins -= self.price
+        else:
+            purchase_failed.play()
+
+    def equip(self):
+        if self.isBought:
+            self.equipped = True
+            volume_changing_sound.play()
+
 
 class NamaPlayer():
     def __init__(self):
@@ -665,6 +693,10 @@ def get_next_track():
         random.shuffle(music_loop)
     return music_loop.pop()
 
+seoul_bg = Background("assets/images/UI/seoul_bg.png", 100, "assets/images/UI/seoul_buy_button.png", 408, 246)
+kyoto_bg = Background("assets/images/UI/kyoto_bg.png", 250, "assets/images/UI/kyoto_bg_button.png", 408, 351)
+bernal_bg = Background("assets/images/UI/bernal_bg.png", 400, "assets/images/UI/kyoto_bg_button.png", 408, 456)
+
 cfa_collect_all_tamas = Achievements("Собрать все NamaTama", 64, 80)
 cfa_sanic_popout = Achievements("Встретить Sanic", 372, 80)
 cfa_IT = Achievements("Встретить ...", 679, 80)
@@ -727,6 +759,8 @@ button_back_from_battle_pass = Button(20, 720)
 button_to_sponsors_from_NamaPass = Button(800, 720)
 button_back_from_sponsors_choice = Button(20, 720)
 button_back_from_sponsors_quotes = Button(20, 720)
+button_to_backgrounds_shop = Button(800, 650)
+button_back_from_backgrounds_shop = Button(20, 720)
 
 sfx_button_plus = Button(527, 114)
 sfx_button_minus = Button(289, 114)
@@ -1216,7 +1250,48 @@ while running:
                 isLoading = True
                 next_mode = "sponsors_choice"
                 cooldown_timer.reset()
+            
+            if (
+                button_back_from_backgrounds_shop.rect.collidepoint(event.pos)
+                and mode == "backgrounds_shop"
+            ):
+                isLoading = True
+                next_mode = "game"
+                cooldown_timer.reset()
+
+            #ФОНЫ
+            if (
+                button_to_backgrounds_shop.rect.collidepoint(event.pos)
+                and mode == "game"
+            ):
+                isLoading = True
+                next_mode = "backgrounds_shop"
+                cooldown_timer.reset()
+            
+            if (seoul_bg.button_rect.collidepoint(event.pos) and mode == "backgrounds_shop"):
+                if not seoul_bg.isBought:
+                    seoul_bg.buy()
+                else:
+                    bernal_bg.equipped = False
+                    kyoto_bg.equipped = False
+                    seoul_bg.equip()
+
+            if (kyoto_bg.button_rect.collidepoint(event.pos) and mode == "backgrounds_shop"):
+                if not kyoto_bg.isBought:
+                    kyoto_bg.buy()
+                else:
+                    bernal_bg.equipped = False
+                    seoul_bg.equipped = False
+                    kyoto_bg.equip()
                 
+            if (bernal_bg.button_rect.collidepoint(event.pos) and mode == "backgrounds_shop"):
+                if not bernal_bg.isBought:
+                    bernal_bg.buy()
+                else:
+                    seoul_bg.equipped = False
+                    kyoto_bg.equipped = False
+                    bernal_bg.equip()
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE and mode == "game":
                 add_clicks()
@@ -1261,10 +1336,24 @@ while running:
 
     # DRAW MODE
     if mode == "game":
-        screen.blit(seoul_bg, (0, 0))
+        screen.fill(GREY)
+
+        if seoul_bg.equipped:
+            screen.blit(seoul_bg.bg_image, (0, 0))
+        if kyoto_bg.equipped:
+            screen.blit(kyoto_bg.bg_image, (0, 0))
+        if bernal_bg.equipped:
+            screen.blit(bernal_bg.bg_image, (0, 0))
+
         button_boost.draw(screen)
 
         button_to_shelf_from_game.draw(screen)
+
+        button_to_backgrounds_shop.draw(screen)
+        screen.blit(
+            font_30.render("Фоны", True, BLACK),
+            (button_to_backgrounds_shop.x + 52.5, button_to_backgrounds_shop.y + 12)
+        )
 
         banner.change_banner()
         banner.update()
@@ -1775,6 +1864,52 @@ while running:
             font_30.render(f"Курс: {course.course_coins}", True, BLACK),
             (150, button_exchange_to_coins.y + 10.5)
         )
+
+    if mode == "backgrounds_shop":
+        screen.fill(GREY)
+        button_back_from_backgrounds_shop.draw(screen)
+        screen.blit(
+            font_30.render("Назад", True, BLACK),
+            (button_back_from_backgrounds_shop.x + 52.5, button_back_from_backgrounds_shop.y + 10.5)
+        )
+        seoul_bg.draw_button(screen)
+        if seoul_bg.isBought:
+            status_text_seoul = "Надеть" if not seoul_bg.equipped else "Надет"
+            screen.blit(
+                font_25.render(f"Куплено. {status_text_seoul}", True, BLACK),
+                (seoul_bg.button_rect.x, seoul_bg.button_rect.bottom + 10)
+            )
+        else:
+            screen.blit(
+                font_25.render(f"Цена: {seoul_bg.price} NamaCoins", True, BLACK),
+                (seoul_bg.button_rect.x, seoul_bg.button_rect.bottom + 10)
+            )
+
+        kyoto_bg.draw_button(screen)
+        if kyoto_bg.isBought:
+            status_text_kyoto = "Надеть" if not kyoto_bg.equipped else "Надет"
+            screen.blit(
+                font_25.render(f"Куплено. {status_text_kyoto}", True, BLACK),
+                (kyoto_bg.button_rect.x, kyoto_bg.button_rect.bottom + 10)
+            )
+        else:
+            screen.blit(
+                font_25.render(f"Цена: {kyoto_bg.price} NamaCoins", True, BLACK),
+                (kyoto_bg.button_rect.x, kyoto_bg.button_rect.bottom + 10)
+            )
+
+        bernal_bg.draw_button(screen)
+        if bernal_bg.isBought:
+            status_text_bernal = "Надеть" if not bernal_bg.equipped else "Надет"
+            screen.blit(
+                font_25.render(f"Куплено. {status_text_bernal}", True, BLACK),
+                (bernal_bg.button_rect.x, bernal_bg.button_rect.bottom + 10)
+            )
+        else:
+            screen.blit(
+                font_25.render(f"Цена: {bernal_bg.price} NamaCoins", True, BLACK),
+                (bernal_bg.button_rect.x, bernal_bg.button_rect.bottom + 10)
+            )
 
     for pop in song_popouts.values():
         pop.update()

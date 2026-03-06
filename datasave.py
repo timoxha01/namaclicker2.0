@@ -77,6 +77,13 @@ class SaveSystem:
         course_coins = getattr(course, "course_coins", 0.0) if course is not None else 0.0
         course_clicks = getattr(course, "course_clicks", 0.0) if course is not None else 0.0
 
+        def _equipped_bg_key() -> str | None:
+            for key in ["seoul_bg", "kyoto_bg", "bernal_bg"]:
+                obj = ctx.get(key)
+                if obj is not None and bool(getattr(obj, "equipped", False)):
+                    return key
+            return None
+
         return {
             "version": self.save_version,
             "settings": {
@@ -99,6 +106,15 @@ class SaveSystem:
                 "energy_drink": _b("energy_drink", "isBought"),
                 "tiger_fruit": _b("tiger_fruit", "isBought"),
                 "minigun": _b("minigun", "isBought"),
+                "seoul_bg": _b("seoul_bg", "isBought"),
+                "kyoto_bg": _b("kyoto_bg", "isBought"),
+                "bernal_bg": _b("bernal_bg", "isBought"),
+            },
+            "backgrounds": {
+                "equipped_bg": _equipped_bg_key(),
+                "seoul_bg_equipped": bool(getattr(ctx.get("seoul_bg"), "equipped", False)),
+                "kyoto_bg_equipped": bool(getattr(ctx.get("kyoto_bg"), "equipped", False)),
+                "bernal_bg_equipped": bool(getattr(ctx.get("bernal_bg"), "equipped", False)),
             },
             "achievements": {
                 "cfa_collect_all_tamas": _u("cfa_collect_all_tamas"),
@@ -176,10 +192,56 @@ class SaveSystem:
             ctx["seen_tamas"] = set(str(x) for x in saved_seen)
 
         shop = data.get("shop", {}) if isinstance(data.get("shop", {}), dict) else {}
-        for key in ["teddy_bear", "beluash", "contestant", "energy_drink", "tiger_fruit", "minigun"]:
+        for key in ["teddy_bear", "beluash", "contestant", "energy_drink", "tiger_fruit", "minigun", "seoul_bg", "kyoto_bg", "bernal_bg"]:
             obj = ctx.get(key)
             if obj is not None and hasattr(obj, "isBought"):
                 setattr(obj, "isBought", bool(shop.get(key, getattr(obj, "isBought", False))))
+
+        backgrounds = data.get("backgrounds", {}) if isinstance(data.get("backgrounds", {}), dict) else {}
+
+        equipped_bg = backgrounds.get("equipped_bg", None)
+        if isinstance(equipped_bg, str):
+            equipped_bg = equipped_bg.strip()
+        if equipped_bg not in ["seoul_bg", "kyoto_bg", "bernal_bg"]:
+            equipped_bg = None
+
+        seoul_bg = ctx.get("seoul_bg")
+        kyoto_bg = ctx.get("kyoto_bg")
+        bernal_bg = ctx.get("bernal_bg")
+
+        if equipped_bg is not None:
+            if seoul_bg is not None and hasattr(seoul_bg, "equipped"):
+                seoul_bg.equipped = equipped_bg == "seoul_bg"
+            if kyoto_bg is not None and hasattr(kyoto_bg, "equipped"):
+                kyoto_bg.equipped = equipped_bg == "kyoto_bg"
+            if bernal_bg is not None and hasattr(bernal_bg, "equipped"):
+                bernal_bg.equipped = equipped_bg == "bernal_bg"
+        else:
+            if seoul_bg is not None and hasattr(seoul_bg, "equipped"):
+                seoul_bg.equipped = bool(backgrounds.get("seoul_bg_equipped", getattr(seoul_bg, "equipped", False)))
+            if kyoto_bg is not None and hasattr(kyoto_bg, "equipped"):
+                kyoto_bg.equipped = bool(backgrounds.get("kyoto_bg_equipped", getattr(kyoto_bg, "equipped", False)))
+            if bernal_bg is not None and hasattr(bernal_bg, "equipped"):
+                bernal_bg.equipped = bool(backgrounds.get("bernal_bg_equipped", getattr(bernal_bg, "equipped", False)))
+
+            # Если по каким-то причинам true у нескольких — оставляем самый "приоритетный".
+            is_seoul = bool(getattr(seoul_bg, "equipped", False)) if seoul_bg is not None else False
+            is_kyoto = bool(getattr(kyoto_bg, "equipped", False)) if kyoto_bg is not None else False
+            is_bernal = bool(getattr(bernal_bg, "equipped", False)) if bernal_bg is not None else False
+            if is_bernal or is_kyoto or is_seoul:
+                if seoul_bg is not None and hasattr(seoul_bg, "equipped"):
+                    seoul_bg.equipped = False
+                if kyoto_bg is not None and hasattr(kyoto_bg, "equipped"):
+                    kyoto_bg.equipped = False
+                if bernal_bg is not None and hasattr(bernal_bg, "equipped"):
+                    bernal_bg.equipped = False
+
+                if is_bernal and bernal_bg is not None and hasattr(bernal_bg, "equipped"):
+                    bernal_bg.equipped = True
+                elif is_kyoto and kyoto_bg is not None and hasattr(kyoto_bg, "equipped"):
+                    kyoto_bg.equipped = True
+                elif is_seoul and seoul_bg is not None and hasattr(seoul_bg, "equipped"):
+                    seoul_bg.equipped = True
 
         ach = data.get("achievements", {}) if isinstance(data.get("achievements", {}), dict) else {}
         for key in [

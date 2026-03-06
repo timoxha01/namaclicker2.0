@@ -1,4 +1,5 @@
 import random
+import math
 import pygame
 import os
 import datasave
@@ -64,6 +65,8 @@ pickable_namacoin = pygame.image.load("assets/images/UI/NamaCoin.png").convert_a
 
 locked_button_gfield = pygame.image.load("assets/images/UI/locked_button_1000.png").convert_alpha()
 
+locked_exchange_button = pygame.image.load("assets/images/UI/locked_button_1000.png").convert_alpha()
+
 shelf_bg = pygame.image.load("assets/images/UI/shelf_bg.png")
 
 shop_bg = pygame.image.load("assets/images/UI/shop_bg.png")
@@ -77,6 +80,8 @@ exc_mark = pygame.image.load("assets/images/UI/exc_mark.png")
 seoul_bg = pygame.image.load("assets/images/UI/seoul_bg.png")
 
 exchanger_bg = pygame.image.load("assets/images/UI/exchanger_bg.png")
+
+click_image = pygame.image.load("assets/images/UI/click_image.png")
 
 beluash_preview = pygame.image.load("assets/images/UI/beluash_preview.png").convert_alpha()
 contestant_preview = pygame.image.load("assets/images/UI/contestant_preview.png").convert_alpha()
@@ -209,15 +214,15 @@ class NamaPassbanner:
 class Namas:
     def __init__(self, name, path, chance):
         self.name = name
-        self.pos = (W // 2, 300)
+        self.base_pos = (W // 2, H // 2)
+        self.pos = self.base_pos
         self.original_image = pygame.image.load(path).convert_alpha()
         self.image = self.original_image
         self.rect = self.image.get_rect(center=self.pos)
         self.chance = chance
-        self.scale = 1.0
-        self.target_scale = 1.0
-        self.scale_speed = 0.15
-        self.pulsing = False
+        self.sway_time = 0.0
+        self.sway_duration = 0.15  # секунды лёгкого качания
+        self.sway_amplitude = 4    # пиксели влево/вправо
 
     def draw(self, screen):
         screen.blit(self.image, self.rect)
@@ -226,26 +231,24 @@ class Namas:
         self.clicks += amount * boost
 
     def update(self):
-        if self.scale != self.target_scale:
-            self.scale += (self.target_scale - self.scale) * self.scale_speed
+        # лёгкое качание по горизонтали
+        if self.sway_time > 0.0:
+            # уменьшаем оставшееся время
+            self.sway_time -= 1.0 / FPS
+            # фаза от 0 до 1
+            t = max(0.0, self.sway_time / self.sway_duration)
+            # чем ближе к концу — тем меньше амплитуда
+            offset = math.sin((1.0 - t) * math.pi * 4) * self.sway_amplitude * t
+            self.pos = (self.base_pos[0] + offset, self.base_pos[1])
+        else:
+            self.pos = self.base_pos
 
-            if abs(self.scale - self.target_scale) < 0.01:
-                self.scale = self.target_scale
-                if self.pulsing:
-                    self.target_scale = 1.0
-                    self.pulsing = False
-
-            size = (
-                int(self.original_image.get_width() * self.scale),
-                int(self.original_image.get_height() * self.scale),
-            )
-            self.image = pygame.transform.smoothscale(self.original_image, size)
-            self.rect = self.image.get_rect(center=self.pos)
+        # пересчёт прямоугольника (размеры не меняем)
+        self.rect = self.image.get_rect(center=self.pos)
 
     def pulse(self):
-        self.scale = 0.85
-        self.target_scale = 1.0 
-        self.pulsing = True
+        # запуск лёгкого качания при клике (без изменения размера)
+        self.sway_time = self.sway_duration
 
 class NamaPlayer():
     def __init__(self):
@@ -585,6 +588,16 @@ class BoostCoin(Coin):
             )
         )
 
+class Course:
+    def __init__(self) -> None:
+        self.course_coins = 0.0
+        self.course_clicks = 0.0
+
+    def courses_update(self):
+        self.course_clicks = float(EXCHANGE_CLICKS_PER_NAMACOIN)
+        self.course_coins = round(1.0 / EXCHANGE_CLICKS_PER_NAMACOIN, 6)
+        return self.course_coins, self.course_clicks
+
 def add_clicks():
     global \
         tama_on_screen, \
@@ -594,6 +607,7 @@ def add_clicks():
         seen_tamas, \
         boost_pos, \
         boost
+    total_clicks = int(total_clicks)
     total_clicks += 1 * boost
     show_boost = True
     clicking_text_timer.reset()
@@ -611,15 +625,6 @@ def add_clicks():
         random.randint(0, H - 50),
     )
 
-class Course:
-    def __init__(self) -> None:
-        self.course_coins = 0.0
-        self.course_clicks = 0.0
-
-    def courses_update(self):
-        self.course_clicks = float(EXCHANGE_CLICKS_PER_NAMACOIN)
-        self.course_coins = round(1.0 / EXCHANGE_CLICKS_PER_NAMACOIN, 6)
-        return self.course_coins, self.course_clicks
 
 def choose_tama(tamas):
     total_chance = sum(t.chance for t in tamas)
@@ -740,7 +745,7 @@ button_buy_bear = Button((W // 2) - (183 // 2), 550)
 button_buy_beluash = Button((W // 2) - (183 // 2), 550)
 button_buy_contestant = Button((W // 2) - (183 // 2), 550)
 
-button_exchanging = Button(400, 40)
+button_exchanging = Button(408, 60)
 button_exchanging_back_to_shop = Button(400, 40)
 
 button_exchange_to_coins = Button(500 - (183 // 2), 310)
@@ -796,6 +801,9 @@ coin_boost_active = False
 total_clicks = 0
 NamaCoins = 0
 boost = 1
+
+last_total_clicks_for_shake = 0
+clicks_shake_timer = Timer(200)
 
 show_boost = False
 next_mode = ""
@@ -944,7 +952,7 @@ while running:
                 button_boost.rect.collidepoint(event.pos)
                 and mode == "game"
             ):
-                if total_clicks >= required_clicks_for_boost:
+                if total_clicks >= required_clicks_for_boost and boost < 50:
                     total_clicks -= required_clicks_for_boost
                     boost += 1
                     required_clicks_for_boost *= 1.5
@@ -1018,8 +1026,8 @@ while running:
                         NamaCoins += gained_coins
                         total_clicks = int(total_clicks % EXCHANGE_CLICKS_PER_NAMACOIN)
                         coins_collecting.play()
-                    else:
-                        purchase_failed.play()
+                else:
+                    purchase_failed.play()
 
             if (
                 button_exchange_to_clicks.rect.collidepoint(event.pos)
@@ -1031,8 +1039,8 @@ while running:
                         total_clicks += gained_clicks
                         NamaCoins = 0
                         coins_collecting.play()
-                    else:
-                        purchase_failed.play()
+                else:
+                    purchase_failed.play()
        
 
             #namapass
@@ -1296,8 +1304,6 @@ while running:
         )
         tama_on_screen.update()
         tama_on_screen.draw(screen)
-        clicks_text = font_40.render(str(total_clicks), True, WHITE)
-        screen.blit(clicks_text, (W // 2 - clicks_text.get_width() // 2, 440))
         if tama_on_screen.name == "glitch" and not cfa_IT.unlocked:
             cfa_IT.unlocked = True
             cfa_IT.show_popup = True
@@ -1309,8 +1315,13 @@ while running:
             cfa_sanic_popout.timer.reset()
             sanic_sound.play()
         if show_boost and mode == "game":
+            # Небольшая тряска текста "+boost"
+            shake_x = random.randint(-2, 2)
+            shake_y = random.randint(-2, 2)
+            boost_pos_shaken = (boost_pos[0] + shake_x, boost_pos[1] + shake_y)
             screen.blit(
-                font_30.render(f"+{boost}", True, WHITE), boost_pos
+                font_30.render(f"+{boost}", True, WHITE),
+                boost_pos_shaken,
             )
             if clicking_text_timer.done() and mode == "game":
                 show_boost = False
@@ -1353,7 +1364,6 @@ while running:
             (button_to_game_from_menu.x + 18, button_to_game_from_menu.y + 85.5),
         )
         screen.blit(
-            
             font_30.render("Играть", True, BLACK),
             (button_to_game_from_menu.x + 50, button_to_game_from_menu.y + 10.5),
         )
@@ -1513,6 +1523,8 @@ while running:
                 font_30.render("Обменник", True, BLACK),
                 (button_exchanging.x + 25, button_exchanging.y + 10.5)
             )
+        else:
+            screen.blit(locked_exchange_button, (button_exchanging.x, button_exchanging.y))
         beluash.draw(screen)
         energy_drink.draw(screen)
         minigun.draw(screen)
@@ -1781,6 +1793,10 @@ while running:
             mode = next_mode
             isLoading = False
     
+    if total_clicks != last_total_clicks_for_shake:
+        last_total_clicks_for_shake = total_clicks
+        clicks_shake_timer.reset()
+
     if total_clicks >= 1000:
         isReached1000clicks = True
 
@@ -1792,13 +1808,25 @@ while running:
         and mode != "credits"
         and mode != "settings"
         and mode != "achievements"
+        and mode != "NamaPass"
     ):
-        screen.blit(angle_frame, (781, 0))
-        screen.blit(NamaCoin_image, (792, 7))
+        screen.blit(angle_frame, (776, 0))
+        screen.blit(NamaCoin_image, (792, 0))
+        screen.blit(click_image, (792, 47))
         screen.blit(
             font_30.render(f": {NamaCoins}", True, BLACK),
-            (865, 20)
+            (860, 13)
         )
+
+        # Тряска счётчика кликов при изменении total_clicks
+        clicks_text = font_30.render(f": {int(total_clicks)}", True, BLACK)
+        if not clicks_shake_timer.done():
+            shake_x = random.randint(-1, 1)
+            shake_y = random.randint(-1, 1)
+            screen.blit(clicks_text, (860 + shake_x, 60 + shake_y))
+        else:
+            screen.blit(clicks_text, (860, 60))
+
 
     save_system.maybe_autosave(globals())
     pygame.display.flip()

@@ -740,7 +740,7 @@ button_buy_beluash = Button((W // 2) - (183 // 2), 550)
 button_buy_contestant = Button((W // 2) - (183 // 2), 550)
 
 button_exchanging = Button(408, 60)
-button_exchanging_back_to_shop = Button(400, 40)
+button_exchanging_back_to_shop = Button(408, 60)
 
 button_exchange_to_coins = Button(500 - (183 // 2), 310)
 button_exchange_to_clicks = Button(500 - (183 // 2), 470)
@@ -792,8 +792,8 @@ tama_on_screen = tamas[0]
 boost_coin = 1
 coin_boost_active = False
 
-total_clicks = 10000
-NamaCoins = 10000
+total_clicks = 0
+NamaCoins = 0
 boost = 1
 
 last_total_clicks_for_shake = 0
@@ -1223,13 +1223,13 @@ while running:
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT] or keys[pygame.K_a] and mode == "minigame":
-        namaPlayer.x -= 3
+        namaPlayer.x -= 5
     if keys[pygame.K_RIGHT] or keys[pygame.K_d] and mode == "minigame":
-        namaPlayer.x += 3
+        namaPlayer.x += 5
     if keys[pygame.K_UP] or keys[pygame.K_w] and mode == "minigame":
-        namaPlayer.y -= 3
+        namaPlayer.y -= 5
     if keys[pygame.K_DOWN] or keys[pygame.K_s] and mode == "minigame":
-        namaPlayer.y += 3
+        namaPlayer.y += 5
 
     namaPlayer.x = max(0, min(1000 - namaPlayer.rect.width, namaPlayer.x))
     namaPlayer.y = max(0, min(800 - namaPlayer.rect.height, namaPlayer.y))
@@ -1808,6 +1808,7 @@ while running:
         and mode != "settings"
         and mode != "achievements"
         and mode != "NamaPass"
+        and mode != "tutorial_gfield"
     ):
         screen.blit(angle_frame, (776, 0))
         screen.blit(NamaCoin_image, (792, 0))

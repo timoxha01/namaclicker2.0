@@ -786,6 +786,7 @@ notif_15_shown = False
 notif_20_shown = False
 notif_25_shown = False
 notif_30_shown = False
+show_intro_game_text = True
 seen_tamas = set()
 tama_on_screen = tamas[0]
 
@@ -946,7 +947,7 @@ while running:
                 if total_clicks >= required_clicks_for_boost:
                     total_clicks -= required_clicks_for_boost
                     boost += 1
-                    required_clicks_for_boost *= 2
+                    required_clicks_for_boost *= 1.5
                     purchase_success.play()
                 else:
                     purchase_failed.play()
@@ -1012,7 +1013,6 @@ while running:
                 and mode == "exchanger"
             ):
                 if total_clicks > 0:
-                    # 1 NamaCoin = EXCHANGE_CLICKS_PER_NAMACOIN кликов
                     gained_coins = int(total_clicks // EXCHANGE_CLICKS_PER_NAMACOIN)
                     if gained_coins > 0:
                         NamaCoins += gained_coins
@@ -1282,11 +1282,11 @@ while running:
                 (button_to_minigame_from_game.x, button_to_minigame_from_game.y)
             )
         screen.blit(
-            font_30.render(f"Буст: +{boost + 1}", True, BLACK),
+            font_30.render(f"Буст: x{boost + 1}", True, BLACK),
             (55, 650)
         )
         screen.blit(
-            font_25.render(f"Цена: {required_clicks_for_boost}", True, BLACK),
+            font_25.render(f"Цена: {int(required_clicks_for_boost)}", True, BLACK),
             (56, 676)
         )
         button_to_menu_from_game.draw(screen)
@@ -1314,7 +1314,7 @@ while running:
             )
             if clicking_text_timer.done() and mode == "game":
                 show_boost = False
-        if total_clicks == 0 and mode == "game":
+        if show_intro_game_text:
             screen.blit(
                 font_25.render("Namatama меняется каждый клик", True, WHITE),
                 (300, 500),
@@ -1783,6 +1783,9 @@ while running:
     
     if total_clicks >= 1000:
         isReached1000clicks = True
+
+    if total_clicks > 0:
+        show_intro_game_text = False
 
     if (
         mode != "menu"

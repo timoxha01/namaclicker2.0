@@ -87,6 +87,7 @@ class SaveSystem:
                 "total_clicks": self._safe_int(ctx.get("total_clicks", 0), 0),
                 "NamaCoins": self._safe_int(ctx.get("NamaCoins", 0), 0),
                 "boost": self._safe_int(ctx.get("boost", 1), 1),
+                "required_clicks_for_boost": self._safe_int(ctx.get("required_clicks_for_boost", 100), 100),
                 "isReached1000clicks": bool(ctx.get("isReached1000clicks", False)),
                 "isTutorialWatched": bool(ctx.get("isTutorialWatched", False)),
                 "seen_tamas": seen_tamas_list,
@@ -160,6 +161,13 @@ class SaveSystem:
         ctx["total_clicks"] = max(0, self._safe_int(progress.get("total_clicks", ctx.get("total_clicks", 0)), 0))
         ctx["NamaCoins"] = max(0, self._safe_int(progress.get("NamaCoins", ctx.get("NamaCoins", 0)), 0))
         ctx["boost"] = max(1, self._safe_int(progress.get("boost", ctx.get("boost", 1)), 1))
+        ctx["required_clicks_for_boost"] = max(
+            1,
+            self._safe_int(
+                progress.get("required_clicks_for_boost", ctx.get("required_clicks_for_boost", 100)),
+                100,
+            ),
+        )
         ctx["isReached1000clicks"] = bool(progress.get("isReached1000clicks", ctx.get("isReached1000clicks", False)))
         ctx["isTutorialWatched"] = bool(progress.get("isTutorialWatched", ctx.get("isTutorialWatched", False)))
 

@@ -1,6 +1,7 @@
-from gc import collect
 import random
 import pygame
+import os
+import datasave
 
 pygame.init()
 pygame.mixer.init()
@@ -9,7 +10,7 @@ print("Loading...")
 
 W, H = 1000, 800
 FPS = 50
-mode = "exchanger"
+mode = "menu"
 
 GAME_FONT = "assets/fonts/Tiny5-Regular.ttf"
 
@@ -796,6 +797,15 @@ boost = 1
 show_boost = False
 next_mode = ""
 
+SAVE_PATH = os.path.join(os.path.dirname(__file__), "data.json")
+save_system = datasave.SaveSystem(
+    pygame=pygame,
+    update_volume_cb=update_volume,
+    save_path=SAVE_PATH,
+    autosave_every_ms=3000,
+    save_version=1,
+)
+save_system.load(globals())
 play_next_soundtrack()
 print("Game Loaded, Booting up...")
 
@@ -803,12 +813,14 @@ running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            save_system.save(globals())
             pygame.mixer.music.stop()
             byebye_nama_sound.play()
             pygame.time.delay(int(byebye_nama_sound.get_length() * 1000))
             running = False
         if event.type == MUSIC_END_EVENT:
             play_next_soundtrack()
+
             # MouseButton действия:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if button_to_game_from_menu.rect.collidepoint(event.pos) and mode == "menu":
@@ -1776,6 +1788,7 @@ while running:
             (865, 20)
         )
 
+    save_system.maybe_autosave(globals())
     pygame.display.flip()
     clock.tick(FPS)
 

@@ -1811,7 +1811,7 @@ while running:
             (860, 13)
         )
 
-        # Тряска счётчика кликов при изменении total_clicks
+
         clicks_text = font_30.render(f": {int(total_clicks)}", True, BLACK)
         if not clicks_shake_timer.done():
             shake_x = random.randint(-1, 1)

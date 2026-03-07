@@ -40,6 +40,7 @@ pygame.display.set_icon(pygame.image.load("assets/images/tamas/classic.png"))
 font_40 = pygame.font.Font(GAME_FONT, 40)
 font_30 = pygame.font.Font(GAME_FONT, 30)
 font_25 = pygame.font.Font(GAME_FONT, 25)
+font_20 = pygame.font.Font(GAME_FONT, 20)
 screen = pygame.display.set_mode((W, H))
 clock = pygame.time.Clock()
 
@@ -215,7 +216,7 @@ class NamaPassbanner:
 class Namas:
     def __init__(self, name, path, chance):
         self.name = name
-        self.base_pos = (W // 2, H // 2 + 100)
+        self.base_pos = (W // 2, H // 2)
         self.pos = self.base_pos
         self.original_image = pygame.image.load(path).convert_alpha()
         self.image = self.original_image
@@ -332,7 +333,7 @@ class BuffMachine:
         _, _, _, _, _, effect_type = self.EFFECTS[self.active_effect_id]
         if effect_type == "farm_coins":
             mult = int(self.active_effect_tick_value)
-            return max(1, mult)  # защита от 0
+            return max(1, mult)
         return 1
 
 class Background:
@@ -418,6 +419,29 @@ class Timer:
         minutes = total_sec // 60
         seconds = total_sec % 60
         return f"{minutes:02d}:{seconds:02d}"
+
+
+def draw_wrapped_text(surface, text, font, color, x, y, max_width, line_height):
+    words = text.split()
+    if not words:
+        return y
+
+    line = words[0]
+    lines = []
+
+    for word in words[1:]:
+        candidate = f"{line} {word}"
+        if font.size(candidate)[0] <= max_width:
+            line = candidate
+        else:
+            lines.append(line)
+            line = word
+    lines.append(line)
+
+    for row in lines:
+        surface.blit(font.render(row, True, color), (x, y))
+        y += line_height
+    return y
 
 class NamaPassItemsCollect:
     def __init__(self, button_x, button_y):
@@ -787,6 +811,12 @@ def get_next_track():
         random.shuffle(music_loop)
     return music_loop.pop()
 
+def load_mode(mode):
+    global isLoading, next_mode, cooldown_timer
+    isLoading = True
+    next_mode = mode
+    cooldown_timer.reset()
+
 seoul_bg = Background("assets/images/UI/seoul_bg.png", 100, "assets/images/UI/seoul_buy_button.png", 408, 246)
 kyoto_bg = Background("assets/images/UI/kyoto_bg.png", 250, "assets/images/UI/kyoto_bg_button.png", 408, 351)
 bernal_bg = Background("assets/images/UI/bernal_bg.png", 400, "assets/images/UI/kyoto_bg_button.png", 408, 456)
@@ -894,9 +924,19 @@ namapass_trentila_reward = NamaPassItemsCollect(726, 194)
 namapass_ospuze_reward = NamaPassItemsCollect(434, 194)
 namapass_minigun_reward = NamaPassItemsCollect(142, 193)
 
-button_machine = Button(469, 215)
+BUFF_MACHINE_X = W - buff_machine_image.get_width() - 12
+BUFF_MACHINE_Y = 100
+BUFF_MACHINE_TEXT_X = BUFF_MACHINE_X + 8
+BUFF_MACHINE_TEXT_W = buff_machine_image.get_width() - 16
+
+button_machine = Button(
+    BUFF_MACHINE_X + (buff_machine_image.get_width() - 183) // 2,
+    BUFF_MACHINE_Y + buff_machine_image.get_height() + 48
+)
 buffm = BuffMachine()
-buffm_intermission_timer = Timer(120000)
+buffm_intermission_timer = Timer(120000) #120000
+show_buff_effect_end_notice = False
+buff_effect_end_notice_timer = Timer(2000)
 
 course = Course()
 course.courses_update()
@@ -963,52 +1003,36 @@ while running:
             # MouseButton действия:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if button_to_game_from_menu.rect.collidepoint(event.pos) and mode == "menu":
-                isLoading = True
-                next_mode = "game"
-                cooldown_timer.reset()
+                load_mode("game")
             if button_to_menu_from_game.rect.collidepoint(event.pos) and mode == "game":
-                isLoading = True
-                next_mode = "menu"
-                cooldown_timer.reset()
+                load_mode("menu")
             if (
                 button_to_credits_from_menu.rect.collidepoint(event.pos)
                 and mode == "menu"
             ):
-                isLoading = True
-                next_mode = "credits"
-                cooldown_timer.reset()
+                load_mode("credits")
             if credits_back_button.rect.collidepoint(event.pos) and mode == "credits":
-                isLoading = True
-                next_mode = "menu"
-                cooldown_timer.reset()
+                load_mode("menu")
             if (
                 button_to_achievements_from_menu.rect.collidepoint(event.pos)
                 and mode == "menu"
             ):
-                isLoading = True
-                next_mode = "achievements"
-                cooldown_timer.reset()
+                load_mode("achievements")
             if (
                 achievements_back_button.rect.collidepoint(event.pos)
                 and mode == "achievements"
             ):
-                isLoading = True
-                next_mode = "menu"
-                cooldown_timer.reset()
+                load_mode("menu")
             if (
                 button_to_settings_from_menu.rect.collidepoint(event.pos)
                 and mode == "menu"
             ):
-                isLoading = True
-                next_mode = "settings"
-                cooldown_timer.reset()
+                load_mode("settings")
             if (
                 settings_back_button.rect.collidepoint(event.pos)
                 and mode == "settings"
             ):
-                isLoading = True
-                next_mode = "menu"
-                cooldown_timer.reset()
+                load_mode("menu")
             if (
                 sfx_button_plus.rect.collidepoint(event.pos)
                 and mode == "settings"
@@ -1052,30 +1076,22 @@ while running:
                 button_back_from_minigame.rect.collidepoint(event.pos)
                 and mode == "minigame"
             ):
-                isLoading = True
-                next_mode = "game"
-                cooldown_timer.reset()
+                load_mode("game")
             if (
                 button_to_shelf_from_game.rect.collidepoint(event.pos)
                 and mode == "game"
             ):
-                isLoading = True
-                next_mode = "shelf"
-                cooldown_timer.reset()
+                load_mode("shelf")
             if (
                 button_back_from_shelf.rect.collidepoint(event.pos)
                 and mode == "shelf"
             ):
-                isLoading = True
-                next_mode = "game"
-                cooldown_timer.reset()
+                load_mode("game")
             if (
                 button_back_from_shop.rect.collidepoint(event.pos)
                 and mode == "shop"
             ):
-                isLoading = True
-                next_mode = "shelf"
-                cooldown_timer.reset()
+                load_mode("shelf")
             if (
                 button_boost.rect.collidepoint(event.pos)
                 and mode == "game"
@@ -1091,57 +1107,43 @@ while running:
                 button_to_shop_from_shelf.rect.collidepoint(event.pos)
                 and mode == "shelf"
             ):
-                isLoading = True
-                next_mode = "shop"
-                cooldown_timer.reset()
+                load_mode("shop")
             if tama_on_screen.rect.collidepoint(event.pos) and mode == "game":
                 add_clicks()
             if (
                 button_back_from_shelf.rect.collidepoint(event.pos)
                 and mode == "shelf"
             ):
-                isLoading = True
-                next_mode = "game"
-                cooldown_timer.reset()
+                load_mode("game")
             if (
                 banner.rect.collidepoint(event.pos)
                 and mode == "game"
             ):
-                isLoading = True
-                next_mode = "NamaPass"
-                cooldown_timer.reset()
+                load_mode("NamaPass")
             if (
                 button_back_from_battle_pass.rect.collidepoint(event.pos)
                 and mode == "NamaPass"
             ):
-                isLoading = True
-                next_mode = "game"
-                cooldown_timer.reset()
+                load_mode("game")
             if (
                 button_got_it.rect.collidepoint(event.pos)
                 and mode == "tutorial_gfield"
             ):
-                isLoading = True
+                load_mode("minigame")
                 isTutorialWatched = True
-                next_mode = "minigame"
-                cooldown_timer.reset()
 
             if (
                 button_exchanging.rect.collidepoint(event.pos)
                 and mode == "shop"
                 and isReached1000clicks
             ):
-                isLoading = True
-                next_mode = "exchanger"
-                cooldown_timer.reset()
+                load_mode("exchanger")
 
             if (
                 button_exchanging_back_to_shop.rect.collidepoint(event.pos)
                 and mode == "exchanger"
             ):
-                isLoading = True
-                next_mode = "shop"
-                cooldown_timer.reset()
+                load_mode("shop")
 
             # обменник
             if (
@@ -1442,7 +1444,15 @@ while running:
         nofitication_sound.play()
         TriggerNotification()
 
+    had_active_timed_effect = (
+        buffm.active_effect_id is not None and buffm.active_effect_timer is not None
+    )
     buffm.update_timed_effects(globals())
+    if had_active_timed_effect and buffm.active_effect_id is None:
+        show_buff_effect_end_notice = True
+        buff_effect_end_notice_timer.reset()
+    if show_buff_effect_end_notice and buff_effect_end_notice_timer.done():
+        show_buff_effect_end_notice = False
 
     # DRAW MODE
     if mode == "game":
@@ -1472,70 +1482,60 @@ while running:
         ShowNofitication(screen)
         
         #Buff Machine:
-        screen.blit(buff_machine_image, (200, 20))
-        
-        buff_panel_x, buff_panel_y = 400, 18
-        buff_panel_w, buff_panel_h = 320, 228
-        buff_panel_rect = pygame.Rect(buff_panel_x, buff_panel_y, buff_panel_w, buff_panel_h)
-        buff_panel_surf = pygame.Surface((buff_panel_w, buff_panel_h))
-        buff_panel_surf.set_alpha(220)
-        buff_panel_surf.fill((40, 35, 50))
-        screen.blit(buff_panel_surf, (buff_panel_x, buff_panel_y))
-        pygame.draw.rect(screen, (100, 90, 130), buff_panel_rect, 2)
-        
-        buff_title = font_30.render("Buff Machine", True, (230, 220, 255))
-        title_rect = buff_title.get_rect(centerx=buff_panel_rect.centerx, y=buff_panel_y + 10)
-        screen.blit(buff_title, title_rect)
-        
-        buff_sub = font_25.render("Нажми кнопку внизу", True, (180, 175, 200))
-        sub_rect = buff_sub.get_rect(centerx=buff_panel_rect.centerx, y=buff_panel_y + 42)
-        screen.blit(buff_sub, sub_rect)
-        
-        result_box = pygame.Rect(buff_panel_x + 10, buff_panel_y + 68, buff_panel_w - 20, 70)
-        pygame.draw.rect(screen, (55, 50, 70), result_box)
-        pygame.draw.rect(screen, (80, 75, 100), result_box, 1)
-        if buffm.last_result_text:
-            text = buffm.last_result_text
-            if len(text) > 30:
-                space_idx = text[:30].rfind(" ")
-                line1 = text[:space_idx] if space_idx > 0 else text[:30]
-                line2 = (text[space_idx:].strip() if space_idx > 0 else text[30:60]).strip()
-                t1 = font_25.render(line1, True, (255, 250, 240))
-                r1 = t1.get_rect(centerx=result_box.centerx, y=result_box.y + 10)
-                screen.blit(t1, r1)
-                if line2:
-                    t2 = font_25.render(line2[:30], True, (255, 250, 240))
-                    r2 = t2.get_rect(centerx=result_box.centerx, y=result_box.y + 38)
-                    screen.blit(t2, r2)
-            else:
-                t0 = font_25.render(text, True, (255, 250, 240))
-                r0 = t0.get_rect(centerx=result_box.centerx, centery=result_box.centery)
-                screen.blit(t0, r0)
-        else:
-            hint = font_25.render("Результат появится здесь", True, (120, 115, 140))
-            r_hint = hint.get_rect(centerx=result_box.centerx, centery=result_box.centery)
-            screen.blit(hint, r_hint)
-        
-        timer_box = pygame.Rect(buff_panel_x + 10, buff_panel_y + 144, buff_panel_w - 20, 32)
+        screen.blit(buff_machine_image, (BUFF_MACHINE_X, BUFF_MACHINE_Y))
+
         if buffm_intermission_timer.done():
-            pygame.draw.rect(screen, (50, 90, 60), timer_box)
-            pygame.draw.rect(screen, (80, 180, 100), timer_box, 1)
-            timer_text = font_25.render("Готово! Можно нажимать", True, (140, 255, 150))
+            machine_timer_text = "Таймер: готово"
         else:
-            pygame.draw.rect(screen, (60, 55, 75), timer_box)
-            pygame.draw.rect(screen, (90, 85, 110), timer_box, 1)
-            timer_text = font_25.render(
-                f"Через: {buffm_intermission_timer.time_format()}",
-                True, (220, 215, 235)
-            )
-        timer_rect = timer_text.get_rect(center=timer_box.center)
-        screen.blit(timer_text, timer_rect)
-        
+            machine_timer_text = f"Таймер: {buffm_intermission_timer.time_format()}"
+        screen.blit(
+            font_25.render(machine_timer_text, True, WHITE),
+            (button_machine.x + 15, BUFF_MACHINE_Y + buff_machine_image.get_height() + 8)
+        )
+
         button_machine.draw(screen)
         screen.blit(
             font_25.render("INSERT COIN", True, BLACK),
-            (button_machine.x + 20.5, button_machine.y + 14)
+            (button_machine.x + 22, button_machine.y + 15)
         )
+
+        effect_color = WHITE
+        effect_title = "Эффект:"
+        effect_text = buffm.last_result_text if buffm.last_result_text else "Пока нет эффекта"
+
+        if buffm.active_effect_id is not None:
+            _, effect_kind, _, _, _, _ = buffm.EFFECTS[buffm.active_effect_id]
+            if effect_kind == "buff":
+                effect_color = (140, 255, 140)
+                effect_title = "Бафф:"
+            else:
+                effect_color = (255, 140, 140)
+                effect_title = "Дебафф:"
+
+        effect_y = button_machine.y + 70
+        screen.blit(font_25.render(effect_title, True, effect_color), (BUFF_MACHINE_TEXT_X, effect_y))
+        if show_buff_effect_end_notice:
+            screen.blit(
+                font_20.render("ENDED", True, (255, 245, 140)),
+                (BUFF_MACHINE_TEXT_X + 112, effect_y + 4)
+            )
+        effect_y += 24
+        effect_y = draw_wrapped_text(
+            screen,
+            effect_text,
+            font_20,
+            WHITE,
+            BUFF_MACHINE_TEXT_X,
+            effect_y,
+            BUFF_MACHINE_TEXT_W,
+            20
+        )
+
+        if buffm.active_effect_id is not None and buffm.active_effect_timer is not None:
+            screen.blit(
+                font_20.render(f"До конца: {buffm.active_effect_timer.time_format()}", True, effect_color),
+                (BUFF_MACHINE_TEXT_X, effect_y + 8)
+            )
 
         button_to_minigame_from_game.draw(screen)
         screen.blit(
@@ -2127,7 +2127,6 @@ while running:
         screen.blit(NamaCoin_image, (792, 0))
         screen.blit(click_image, (792, 47))
 
-        # Тряска NamaCoins при изменении
         coins_text = font_30.render(f": {NamaCoins}", True, BLACK)
         if not nama_shake_timer.done():
             shake_x = random.randint(-1, 1)
@@ -2136,7 +2135,6 @@ while running:
         else:
             screen.blit(coins_text, (860, 13))
 
-        # Тряска total_clicks при изменении
         clicks_text = font_30.render(f": {int(total_clicks)}", True, BLACK)
         if not clicks_shake_timer.done():
             shake_x = random.randint(-1, 1)
@@ -2144,7 +2142,6 @@ while running:
             screen.blit(clicks_text, (860 + shake_x, 60 + shake_y))
         else:
             screen.blit(clicks_text, (860, 60))
-
 
     save_system.maybe_autosave(globals())
     pygame.display.flip()

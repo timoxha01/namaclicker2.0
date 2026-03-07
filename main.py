@@ -10,7 +10,7 @@ pygame.mixer.init()
 print("Loading...")
 
 W, H = 1000, 800
-FPS = 50
+FPS = 60
 mode = "menu"
 
 GAME_FONT = "assets/fonts/Tiny5-Regular.ttf"
@@ -93,6 +93,8 @@ namapass_banner_ospuze = pygame.image.load("assets/images/UI/namapass_banner_osp
 namapass_banner_trentila = pygame.image.load("assets/images/UI/namapass_banner_trentila.png").convert_alpha()
 namapass_banner_vaiiya = pygame.image.load("assets/images/UI/namapass_banner_vaiiya.png").convert_alpha()
 
+buff_machine_image = pygame.image.load("assets/images/UI/buff_machine.png").convert_alpha()
+
 trentila_button_img = pygame.image.load(
     "assets/images/UI/trentila_button.png"
 ).convert_alpha()
@@ -121,6 +123,7 @@ purchase_success = pygame.mixer.Sound("assets/sounds/sfxes/purchase_success.mp3"
 purchase_failed = pygame.mixer.Sound("assets/sounds/sfxes/purchase_failed.mp3")
 coins_collecting = pygame.mixer.Sound("assets/sounds/sfxes/NamaCoins_collecting.mp3")
 nofitication_sound = pygame.mixer.Sound("assets/sounds/sfxes/announcement.mp3")
+inserted_coin = pygame.mixer.Sound("assets/sounds/sfxes/inserted_coin.mp3")
 
 class NamaPassbanner:
     def __init__(self):
@@ -212,15 +215,15 @@ class NamaPassbanner:
 class Namas:
     def __init__(self, name, path, chance):
         self.name = name
-        self.base_pos = (W // 2, H // 2)
+        self.base_pos = (W // 2, H // 2 + 100)
         self.pos = self.base_pos
         self.original_image = pygame.image.load(path).convert_alpha()
         self.image = self.original_image
         self.rect = self.image.get_rect(center=self.pos)
         self.chance = chance
         self.sway_time = 0.0
-        self.sway_duration = 0.15  # секунды лёгкого качания
-        self.sway_amplitude = 4    # пиксели влево/вправо
+        self.sway_duration = 0.15
+        self.sway_amplitude = 4
 
     def draw(self, screen):
         screen.blit(self.image, self.rect)
@@ -241,6 +244,96 @@ class Namas:
 
     def pulse(self):
         self.sway_time = self.sway_duration
+
+class BuffMachine:
+    EFFECTS = {
+        "buff1": ("x1.1 кликов каждые 10 секунд на протяжении минуты!", "buff", 60000, 10000, 1.1, "clicks"),
+        "buff2": ("Буст увеличивается на 2 на 10 секунд!", "buff", 10000, 0, 2, "boost_bonus"),
+        "buff3": ("x3 NamaCoins на ферме!", "buff", 60000, 0, 3, "farm_coins"),
+        "debuff1": ("-10 кликов каждые 3 секунды на протяжении 30 секунд!", "debuff", 30000, 3000, -10, "clicks"),
+        "debuff2": ("В NamaPass к текущему оставшемуся времени добавляется 30 секунд!", "debuff", 0, 0, 30000, "namapass_delay"),
+        "debuff3": ("NamaCoins делятся на 2", "debuff", 0, 0, 0, "halve_coins"),
+    }
+
+    def __init__(self) -> None:
+        self.shuffle_result = None
+        self.last_result_text = None
+        self.active_effect_id = None
+        self.active_effect_timer = None
+        self.active_effect_tick_timer = None
+        self.active_effect_tick_value = 0
+
+    def shuffle(self):
+        self.active_effect_id = random.choice(list(self.EFFECTS.keys()))
+        text, etype, duration_ms, tick_ms, tick_val, _ = self.EFFECTS[self.active_effect_id]
+        self.shuffle_result = text
+        self.last_result_text = text
+
+        if duration_ms > 0:
+            self.active_effect_timer = Timer(duration_ms)
+        else:
+            self.active_effect_timer = None
+
+        if tick_ms > 0:
+            self.active_effect_tick_timer = Timer(tick_ms)
+            self.active_effect_tick_value = tick_val
+        else:
+            self.active_effect_tick_timer = None
+            self.active_effect_tick_value = tick_val
+
+        return self.shuffle_result
+
+    def apply_instant_effects(self, ctx):
+        """Применяет мгновенные эффекты (debuff2, debuff3)."""
+        if self.active_effect_id is None:
+            return
+        _, _, duration_ms, _, tick_val, effect_type = self.EFFECTS[self.active_effect_id]
+        if duration_ms == 0:
+            if effect_type == "namapass_delay":
+                for name in ["namapass_5min_timer", "namapass_10min_timer", "namapass_15min_timer",
+                            "namapass_20min_timer", "namapass_25min_timer", "namapass_30min_timer"]:
+                    t = ctx.get(name)
+                    if t is not None and hasattr(t, "duration"):
+                        t.duration += tick_val
+            elif effect_type == "halve_coins":
+                ctx["NamaCoins"] = max(0, ctx["NamaCoins"] // 2)
+            self.active_effect_id = None
+
+    def update_timed_effects(self, ctx):
+        """Обновляет эффекты с таймером (buff1, buff2, buff3, debuff1)."""
+        if self.active_effect_id is None or self.active_effect_timer is None:
+            return
+        if self.active_effect_timer.done():
+            self.active_effect_id = None
+            self.active_effect_timer = None
+            self.active_effect_tick_timer = None
+            self.active_effect_tick_value = 0
+            return
+
+        _, _, _, _, _, effect_type = self.EFFECTS[self.active_effect_id]
+        if self.active_effect_tick_timer is not None and self.active_effect_tick_timer.done():
+            self.active_effect_tick_timer.reset()
+            if effect_type == "clicks":
+                ctx["total_clicks"] = max(0, round(float(ctx["total_clicks"]) + self.active_effect_tick_value))
+            elif effect_type == "boost_bonus":
+                pass  # обрабатывается в add_clicks через buff_boost_bonus
+
+    def get_boost_bonus(self):
+        if self.active_effect_id is None:
+            return 0
+        _, _, _, _, _, effect_type = self.EFFECTS[self.active_effect_id]
+        if effect_type == "boost_bonus":
+            return self.active_effect_tick_value
+        return 0
+
+    def get_farm_coin_multiplier(self):
+        if self.active_effect_id is None:
+            return 1
+        _, _, _, _, _, effect_type = self.EFFECTS[self.active_effect_id]
+        if effect_type == "farm_coins":
+            mult = int(self.active_effect_tick_value)
+            return max(1, mult)  # защита от 0
+        return 1
 
 class Background:
     def __init__(self, bg_path, price, buy_button_path, x_button, y_button) -> None:
@@ -630,7 +723,8 @@ def add_clicks():
         boost_pos, \
         boost
     total_clicks = int(total_clicks)
-    total_clicks += 1 * boost
+    boost_bonus = buffm.get_boost_bonus() if buffm else 0
+    total_clicks += 1 * (boost + boost_bonus)
     show_boost = True
     clicking_text_timer.reset()
     tama_on_screen = choose_tama(tamas)
@@ -799,6 +893,10 @@ namapass_500_coins = NamaPassItemsCollect(726, 458)
 namapass_trentila_reward = NamaPassItemsCollect(726, 194)
 namapass_ospuze_reward = NamaPassItemsCollect(434, 194)
 namapass_minigun_reward = NamaPassItemsCollect(142, 193)
+
+button_machine = Button(469, 215)
+buffm = BuffMachine()
+buffm_intermission_timer = Timer(120000)
 
 course = Course()
 course.courses_update()
@@ -1259,6 +1357,16 @@ while running:
                 next_mode = "game"
                 cooldown_timer.reset()
 
+            #buff machine
+            if (
+                button_machine.rect.collidepoint(event.pos)
+                and mode == "game"
+            ):
+                if buffm_intermission_timer.done():
+                    buffm.shuffle()
+                    buffm.apply_instant_effects(globals())
+                    buffm_intermission_timer.reset()
+                    inserted_coin.play()
             #ФОНЫ
             if (
                 button_to_backgrounds_shop.rect.collidepoint(event.pos)
@@ -1334,6 +1442,8 @@ while running:
         nofitication_sound.play()
         TriggerNotification()
 
+    buffm.update_timed_effects(globals())
+
     # DRAW MODE
     if mode == "game":
         screen.fill(GREY)
@@ -1360,6 +1470,73 @@ while running:
         banner.draw(screen)
 
         ShowNofitication(screen)
+        
+        #Buff Machine:
+        screen.blit(buff_machine_image, (200, 20))
+        
+        buff_panel_x, buff_panel_y = 400, 18
+        buff_panel_w, buff_panel_h = 320, 228
+        buff_panel_rect = pygame.Rect(buff_panel_x, buff_panel_y, buff_panel_w, buff_panel_h)
+        buff_panel_surf = pygame.Surface((buff_panel_w, buff_panel_h))
+        buff_panel_surf.set_alpha(220)
+        buff_panel_surf.fill((40, 35, 50))
+        screen.blit(buff_panel_surf, (buff_panel_x, buff_panel_y))
+        pygame.draw.rect(screen, (100, 90, 130), buff_panel_rect, 2)
+        
+        buff_title = font_30.render("Buff Machine", True, (230, 220, 255))
+        title_rect = buff_title.get_rect(centerx=buff_panel_rect.centerx, y=buff_panel_y + 10)
+        screen.blit(buff_title, title_rect)
+        
+        buff_sub = font_25.render("Нажми кнопку внизу", True, (180, 175, 200))
+        sub_rect = buff_sub.get_rect(centerx=buff_panel_rect.centerx, y=buff_panel_y + 42)
+        screen.blit(buff_sub, sub_rect)
+        
+        result_box = pygame.Rect(buff_panel_x + 10, buff_panel_y + 68, buff_panel_w - 20, 70)
+        pygame.draw.rect(screen, (55, 50, 70), result_box)
+        pygame.draw.rect(screen, (80, 75, 100), result_box, 1)
+        if buffm.last_result_text:
+            text = buffm.last_result_text
+            if len(text) > 30:
+                space_idx = text[:30].rfind(" ")
+                line1 = text[:space_idx] if space_idx > 0 else text[:30]
+                line2 = (text[space_idx:].strip() if space_idx > 0 else text[30:60]).strip()
+                t1 = font_25.render(line1, True, (255, 250, 240))
+                r1 = t1.get_rect(centerx=result_box.centerx, y=result_box.y + 10)
+                screen.blit(t1, r1)
+                if line2:
+                    t2 = font_25.render(line2[:30], True, (255, 250, 240))
+                    r2 = t2.get_rect(centerx=result_box.centerx, y=result_box.y + 38)
+                    screen.blit(t2, r2)
+            else:
+                t0 = font_25.render(text, True, (255, 250, 240))
+                r0 = t0.get_rect(centerx=result_box.centerx, centery=result_box.centery)
+                screen.blit(t0, r0)
+        else:
+            hint = font_25.render("Результат появится здесь", True, (120, 115, 140))
+            r_hint = hint.get_rect(centerx=result_box.centerx, centery=result_box.centery)
+            screen.blit(hint, r_hint)
+        
+        timer_box = pygame.Rect(buff_panel_x + 10, buff_panel_y + 144, buff_panel_w - 20, 32)
+        if buffm_intermission_timer.done():
+            pygame.draw.rect(screen, (50, 90, 60), timer_box)
+            pygame.draw.rect(screen, (80, 180, 100), timer_box, 1)
+            timer_text = font_25.render("Готово! Можно нажимать", True, (140, 255, 150))
+        else:
+            pygame.draw.rect(screen, (60, 55, 75), timer_box)
+            pygame.draw.rect(screen, (90, 85, 110), timer_box, 1)
+            timer_text = font_25.render(
+                f"Через: {buffm_intermission_timer.time_format()}",
+                True, (220, 215, 235)
+            )
+        timer_rect = timer_text.get_rect(center=timer_box.center)
+        screen.blit(timer_text, timer_rect)
+        
+        button_machine.draw(screen)
+        screen.blit(
+            font_25.render("INSERT COIN", True, BLACK),
+            (button_machine.x + 20.5, button_machine.y + 14)
+        )
+
         button_to_minigame_from_game.draw(screen)
         screen.blit(
             font_30.render("Полка", True, BLACK),
@@ -1412,7 +1589,7 @@ while running:
         if show_intro_game_text:
             screen.blit(
                 font_25.render("Namatama меняется каждый клик", True, WHITE),
-                (300, 500),
+                (300, 700),
             )
         if total_clicks >= 1000 and not cfa_1000_clicks.unlocked:
             cfa_1000_clicks.unlocked = True
@@ -1554,7 +1731,8 @@ while running:
                     coin_boost_active = True
                     coin_boost_timer.reset()
                 else:
-                    NamaCoins += 1 * boost_coin
+                    farm_mult = buffm.get_farm_coin_multiplier() if buffm else 1
+                    NamaCoins += 1 * boost_coin * farm_mult
 
                 coins_collecting.play()
 

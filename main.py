@@ -36,95 +36,123 @@ MUSIC_END_EVENT = pygame.USEREVENT + 1
 pygame.mixer.music.set_endevent(MUSIC_END_EVENT)
 
 pygame.display.set_caption("NamaClicker 2.0")
+screen = pygame.display.set_mode((W, H))
+clock = pygame.time.Clock()
 pygame.display.set_icon(pygame.image.load("assets/images/tamas/classic.png"))
 font_40 = pygame.font.Font(GAME_FONT, 40)
 font_30 = pygame.font.Font(GAME_FONT, 30)
 font_25 = pygame.font.Font(GAME_FONT, 25)
 font_20 = pygame.font.Font(GAME_FONT, 20)
-screen = pygame.display.set_mode((W, H))
-clock = pygame.time.Clock()
 
-credits_bg_ru = pygame.image.load("assets/images/UI/credits.png")
-menu_screen = pygame.image.load("assets/images/UI/menu_screen.png")
+_image_cache = {}
+_sound_cache = {}
+loading_font = pygame.font.SysFont("arial", 28)
 
-settings_bg = pygame.image.load("assets/images/UI/settings_bg.png")
 
-achievements_bg_ru = pygame.image.load("assets/images/UI/achievements.png")
+def draw_loading_screen(message):
+    screen.fill((18, 18, 18))
+    title = loading_font.render("NamaClicker 2.0", True, (230, 230, 230))
+    text = loading_font.render(message, True, (180, 180, 180))
+    screen.blit(title, (W // 2 - title.get_width() // 2, H // 2 - 36))
+    screen.blit(text, (W // 2 - text.get_width() // 2, H // 2 + 8))
+    pygame.display.flip()
+    pygame.event.pump()
 
-volume_icon = pygame.image.load("assets/images/UI/volume_icon.png")
 
-long_button_img = pygame.image.load(
-    "assets/images/UI/button_long.png"
-).convert_alpha()
+def load_image(path, *, alpha=True):
+    key = (path, alpha)
+    cached = _image_cache.get(key)
+    if cached is not None:
+        return cached
+    image = pygame.image.load(path)
+    image = image.convert_alpha() if alpha else image.convert()
+    _image_cache[key] = image
+    return image
 
-NamaCoin_image = pygame.image.load("assets/images/UI/NamaCoin.png")
-angle_frame = pygame.image.load("assets/images/UI/angle_frame.png").convert_alpha()
 
-field_bg = pygame.image.load("assets/images/UI/greenfield.png")
+def load_sound(path):
+    cached = _sound_cache.get(path)
+    if cached is not None:
+        return cached
+    sound = pygame.mixer.Sound(path)
+    _sound_cache[path] = sound
+    return sound
 
-pickable_namacoin = pygame.image.load("assets/images/UI/NamaCoin.png").convert_alpha()
 
-locked_button_gfield = pygame.image.load("assets/images/UI/locked_button_1000.png").convert_alpha()
+draw_loading_screen("Загрузка ассетов...")
 
-locked_exchange_button = pygame.image.load("assets/images/UI/locked_button_1000.png").convert_alpha()
+credits_bg_ru = load_image("assets/images/UI/credits.png", alpha=False)
+menu_screen = load_image("assets/images/UI/menu_screen.png", alpha=False)
 
-shelf_bg = pygame.image.load("assets/images/UI/shelf_bg.png")
+settings_bg = load_image("assets/images/UI/settings_bg.png", alpha=False)
 
-shop_bg = pygame.image.load("assets/images/UI/shop_bg.png")
+achievements_bg_ru = load_image("assets/images/UI/achievements.png", alpha=False)
 
-namapass_bg = pygame.image.load("assets/images/UI/namapass_bg.png")
+volume_icon = load_image("assets/images/UI/volume_icon.png", alpha=True)
 
-tutorial_gfield = pygame.image.load("assets/images/UI/tutorial_gfield.png")
+long_button_img = load_image("assets/images/UI/button_long.png", alpha=True)
 
-exc_mark = pygame.image.load("assets/images/UI/exc_mark.png")
+NamaCoin_image = load_image("assets/images/UI/NamaCoin.png", alpha=True)
+angle_frame = load_image("assets/images/UI/angle_frame.png", alpha=True)
 
-exchanger_bg = pygame.image.load("assets/images/UI/exchanger_bg.png")
+field_bg = load_image("assets/images/UI/greenfield.png", alpha=False)
 
-click_image = pygame.image.load("assets/images/UI/click_image.png")
+pickable_namacoin = NamaCoin_image
 
-beluash_preview = pygame.image.load("assets/images/UI/beluash_preview.png").convert_alpha()
-contestant_preview = pygame.image.load("assets/images/UI/contestant_preview.png").convert_alpha()
-tiger_fruit_preview = pygame.image.load("assets/images/UI/tiger_fruit_preview.png").convert_alpha()
-energy_drink_preview = pygame.image.load("assets/images/UI/energy_drink_preview.png").convert_alpha()
-minigun_preview = pygame.image.load("assets/images/UI/minigun_preview.png").convert_alpha()
-teddy_bear_preview = pygame.image.load("assets/images/UI/teddy_bear_preview.png").convert_alpha()
+locked_button_gfield = load_image("assets/images/UI/locked_button_1000.png", alpha=True)
 
-namapass_banner_alfa_acta = pygame.image.load("assets/images/UI/namapass_banner_alfa_acta.png").convert_alpha()
-namapass_banner_ospuze = pygame.image.load("assets/images/UI/namapass_banner_ospuze.png").convert_alpha()
-namapass_banner_trentila = pygame.image.load("assets/images/UI/namapass_banner_trentila.png").convert_alpha()
-namapass_banner_vaiiya = pygame.image.load("assets/images/UI/namapass_banner_vaiiya.png").convert_alpha()
+locked_exchange_button = locked_button_gfield
 
-buff_machine_image = pygame.image.load("assets/images/UI/buff_machine.png").convert_alpha()
+shelf_bg = load_image("assets/images/UI/shelf_bg.png", alpha=False)
 
-trentila_button_img = pygame.image.load(
-    "assets/images/UI/trentila_button.png"
-).convert_alpha()
-vaiiya_button_img = pygame.image.load(
-    "assets/images/UI/vaiiya_button.png"
-).convert_alpha()
-ospuze_button_img = pygame.image.load(
-    "assets/images/UI/ospuze_button.png"
-).convert_alpha()
-alfa_acta_button_img = pygame.image.load(
-    "assets/images/UI/alfa_acta_button.png"
-).convert_alpha()
+shop_bg = load_image("assets/images/UI/shop_bg.png", alpha=False)
 
-vaiiya_quote = pygame.image.load("assets/images/UI/vaiiya_info.png").convert_alpha()
-trentila_quote = pygame.image.load("assets/images/UI/trentila_info.png").convert_alpha()
-ospuze_quote = pygame.image.load("assets/images/UI/ospuze_info.png").convert_alpha()
-alfa_acta_quote = pygame.image.load("assets/images/UI/alfa_acta_info.png").convert_alpha()
+namapass_bg = load_image("assets/images/UI/namapass_bg.png", alpha=False)
 
-byebye_nama_sound = pygame.mixer.Sound("assets/sounds/sfxes/namatama_byebye.mp3")
-click_sound = pygame.mixer.Sound("assets/sounds/sfxes/click_sound.mp3")
-mouse_click_sound = pygame.mixer.Sound("assets/sounds/sfxes/mouse_click.mp3")
-glitch_sound = pygame.mixer.Sound("assets/sounds/sfxes/screamer_glitch.mp3")
-sanic_sound = pygame.mixer.Sound("assets/sounds/sfxes/screamer_sanic.mp3")
-volume_changing_sound = pygame.mixer.Sound("assets/sounds/sfxes/volume_change_sound.mp3")
-purchase_success = pygame.mixer.Sound("assets/sounds/sfxes/purchase_success.mp3")
-purchase_failed = pygame.mixer.Sound("assets/sounds/sfxes/purchase_failed.mp3")
-coins_collecting = pygame.mixer.Sound("assets/sounds/sfxes/NamaCoins_collecting.mp3")
-nofitication_sound = pygame.mixer.Sound("assets/sounds/sfxes/announcement.mp3")
-inserted_coin = pygame.mixer.Sound("assets/sounds/sfxes/inserted_coin.mp3")
+tutorial_gfield = load_image("assets/images/UI/tutorial_gfield.png", alpha=False)
+
+exc_mark = load_image("assets/images/UI/exc_mark.png", alpha=True)
+
+exchanger_bg = load_image("assets/images/UI/exchanger_bg.png", alpha=False)
+
+click_image = load_image("assets/images/UI/click_image.png", alpha=True)
+
+beluash_preview = load_image("assets/images/UI/beluash_preview.png", alpha=True)
+contestant_preview = load_image("assets/images/UI/contestant_preview.png", alpha=True)
+tiger_fruit_preview = load_image("assets/images/UI/tiger_fruit_preview.png", alpha=True)
+energy_drink_preview = load_image("assets/images/UI/energy_drink_preview.png", alpha=True)
+minigun_preview = load_image("assets/images/UI/minigun_preview.png", alpha=True)
+teddy_bear_preview = load_image("assets/images/UI/teddy_bear_preview.png", alpha=True)
+
+namapass_banner_alfa_acta = load_image("assets/images/UI/namapass_banner_alfa_acta.png", alpha=True)
+namapass_banner_ospuze = load_image("assets/images/UI/namapass_banner_ospuze.png", alpha=True)
+namapass_banner_trentila = load_image("assets/images/UI/namapass_banner_trentila.png", alpha=True)
+namapass_banner_vaiiya = load_image("assets/images/UI/namapass_banner_vaiiya.png", alpha=True)
+
+buff_machine_image = load_image("assets/images/UI/buff_machine.png", alpha=True)
+
+trentila_button_img = load_image("assets/images/UI/trentila_button.png", alpha=True)
+vaiiya_button_img = load_image("assets/images/UI/vaiiya_button.png", alpha=True)
+ospuze_button_img = load_image("assets/images/UI/ospuze_button.png", alpha=True)
+alfa_acta_button_img = load_image("assets/images/UI/alfa_acta_button.png", alpha=True)
+
+vaiiya_quote = load_image("assets/images/UI/vaiiya_info.png", alpha=True)
+trentila_quote = load_image("assets/images/UI/trentila_info.png", alpha=True)
+ospuze_quote = load_image("assets/images/UI/ospuze_info.png", alpha=True)
+alfa_acta_quote = load_image("assets/images/UI/alfa_acta_info.png", alpha=True)
+
+draw_loading_screen("Загрузка звуков...")
+byebye_nama_sound = load_sound("assets/sounds/sfxes/namatama_byebye.mp3")
+click_sound = load_sound("assets/sounds/sfxes/click_sound.mp3")
+mouse_click_sound = load_sound("assets/sounds/sfxes/mouse_click.mp3")
+glitch_sound = load_sound("assets/sounds/sfxes/screamer_glitch.mp3")
+sanic_sound = load_sound("assets/sounds/sfxes/screamer_sanic.mp3")
+volume_changing_sound = load_sound("assets/sounds/sfxes/volume_change_sound.mp3")
+purchase_success = load_sound("assets/sounds/sfxes/purchase_success.mp3")
+purchase_failed = load_sound("assets/sounds/sfxes/purchase_failed.mp3")
+coins_collecting = load_sound("assets/sounds/sfxes/NamaCoins_collecting.mp3")
+nofitication_sound = load_sound("assets/sounds/sfxes/announcement.mp3")
+inserted_coin = load_sound("assets/sounds/sfxes/inserted_coin.mp3")
 
 class NamaPassbanner:
     def __init__(self):
@@ -218,7 +246,7 @@ class Namas:
         self.name = name
         self.base_pos = (W // 2, H // 2)
         self.pos = self.base_pos
-        self.original_image = pygame.image.load(path).convert_alpha()
+        self.original_image = load_image(path, alpha=True)
         self.image = self.original_image
         self.rect = self.image.get_rect(center=self.pos)
         self.chance = chance
@@ -340,13 +368,13 @@ class BuffMachine:
 
 class Background:
     def __init__(self, bg_path, price, buy_button_path, x_button, y_button) -> None:
-        self.bg_image = pygame.image.load(bg_path).convert()
+        self.bg_image = load_image(bg_path, alpha=False)
         self.price = price
         self.isBought = False
         self.equipped = False
         self.x_button = x_button
         self.y_button = y_button
-        self.buy_button_image = pygame.image.load(buy_button_path).convert_alpha()
+        self.buy_button_image = load_image(buy_button_path, alpha=True)
         self.button_rect = self.buy_button_image.get_rect(topleft=(x_button, y_button))
 
     def draw_button(self, screen):
@@ -372,7 +400,7 @@ class NamaPlayer():
     def __init__(self):
         self.x = 25
         self.y = 523
-        self.original_image = pygame.image.load("assets/images/tamas/classic.png")
+        self.original_image = load_image("assets/images/tamas/classic.png", alpha=True)
         self.image = pygame.transform.scale(self.original_image, (144, 144))
         self.rect = self.image.get_rect()
         self.rect.topleft = (self.x, self.y)
@@ -385,7 +413,7 @@ namaPlayer = NamaPlayer()
 class ShopItems():
     def __init__(self, image_path, price, x, y) -> None:
         self.price = price
-        self.image = pygame.image.load(image_path).convert_alpha()
+        self.image = load_image(image_path, alpha=True)
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
         self.isBought = False
@@ -446,11 +474,18 @@ def draw_wrapped_text(surface, text, font, color, x, y, max_width, line_height):
     return y
 
 class NamaPassItemsCollect:
+    BUTTON_IMAGE = None
+    COLLECTED_IMAGE = None
+
     def __init__(self, button_x, button_y):
         self.button_x = button_x
         self.button_y = button_y
-        self.button_image = pygame.image.load("assets/images/UI/collect_button.png")
-        self.collected_item = pygame.image.load("assets/images/UI/namapass_collected.png")
+        if NamaPassItemsCollect.BUTTON_IMAGE is None:
+            NamaPassItemsCollect.BUTTON_IMAGE = load_image("assets/images/UI/collect_button.png", alpha=True)
+        if NamaPassItemsCollect.COLLECTED_IMAGE is None:
+            NamaPassItemsCollect.COLLECTED_IMAGE = load_image("assets/images/UI/namapass_collected.png", alpha=True)
+        self.button_image = NamaPassItemsCollect.BUTTON_IMAGE
+        self.collected_item = NamaPassItemsCollect.COLLECTED_IMAGE
         self.rect = self.button_image.get_rect(topleft=(button_x, button_y))
         self.isCountdownDone = False
         self.isCollected = False
@@ -471,7 +506,7 @@ class NamaPassItemsCollect:
 
 class SongsPopouts:
     def __init__(self, image_path, x=15, y=680):
-        self.base_image = pygame.image.load(image_path).convert_alpha()
+        self.base_image = load_image(image_path, alpha=True)
         self.x = x
         self.y = y
 
@@ -521,12 +556,14 @@ class SongsPopouts:
         screen.blit(img, (self.x, self.y))
 
 class Button:
+    BASE_IMAGE = None
+
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.original_image = pygame.image.load(
-            "assets/images/UI/button.png"
-        ).convert_alpha()
+        if Button.BASE_IMAGE is None:
+            Button.BASE_IMAGE = load_image("assets/images/UI/button.png", alpha=True)
+        self.original_image = Button.BASE_IMAGE
         self.image = self.original_image
         self.base_rect = self.original_image.get_rect(topleft=(self.x, self.y))
         self.rect = self.base_rect.copy()
@@ -640,25 +677,29 @@ vaiiya_button = HoverImage(
 )
 
 class Achievements:
+    POP_OUT_LABEL = None
+    HIDDEN_IMAGE = None
+    ACHIEVEMENT_SOUND = None
+
     def __init__(self, pop_out_text, x, y):
         self.x_pop_out = 500 
         self.target_y = 30
         self.speed = 7
         self.pop_out_text = pop_out_text
         self.sound_played = False
-        self.pop_out_label = pygame.image.load(
-            "assets/images/UI/pop_out_label.png"
-        ).convert_alpha()
+        if Achievements.POP_OUT_LABEL is None:
+            Achievements.POP_OUT_LABEL = load_image("assets/images/UI/pop_out_label.png", alpha=True)
+        if Achievements.HIDDEN_IMAGE is None:
+            Achievements.HIDDEN_IMAGE = load_image("assets/images/UI/hidden_achi.png", alpha=True)
+        if Achievements.ACHIEVEMENT_SOUND is None:
+            Achievements.ACHIEVEMENT_SOUND = load_sound("assets/sounds/sfxes/nofitication_sound.mp3")
+        self.pop_out_label = Achievements.POP_OUT_LABEL
         self.pop_rect = self.pop_out_label.get_rect(
             midtop=(W // 2, - self.pop_out_label.get_height())
         )
         self.y_pop_out = self.pop_rect.y
-        self.achievement_sound = pygame.mixer.Sound(
-            "assets/sounds/sfxes/nofitication_sound.mp3"
-            )
-        self.image = pygame.image.load(
-            "assets/images/UI/hidden_achi.png"
-        ).convert_alpha()
+        self.achievement_sound = Achievements.ACHIEVEMENT_SOUND
+        self.image = Achievements.HIDDEN_IMAGE
         self.rect = self.image.get_rect(topleft=(x, y))
         self.unlocked = False
         self.show_popup = False
@@ -717,11 +758,13 @@ class Coin:
         screen.blit(self.image, self.rect)
 
 class BoostCoin(Coin):
+    BOOST_COIN_IMAGE = None
+
     def __init__(self):
         super().__init__()
-        self.image = pygame.image.load(
-            "assets/images/UI/NamaCoin_boost.png"
-        ).convert_alpha()
+        if BoostCoin.BOOST_COIN_IMAGE is None:
+            BoostCoin.BOOST_COIN_IMAGE = load_image("assets/images/UI/NamaCoin_boost.png", alpha=True)
+        self.image = BoostCoin.BOOST_COIN_IMAGE
         self.rect = self.image.get_rect(
             center=(
                 random.randint(50, W - 50),
@@ -814,6 +857,7 @@ def load_mode(mode):
     next_mode = mode
     cooldown_timer.reset()
 
+draw_loading_screen("Инициализация мира...")
 seoul_bg = Background("assets/images/UI/seoul_bg.png", 100, "assets/images/UI/seoul_buy_button.png", 408, 246)
 kyoto_bg = Background("assets/images/UI/kyoto_bg.png", 250, "assets/images/UI/kyoto_bg_button.png", 408, 351)
 bernal_bg = Background("assets/images/UI/bernal_bg.png", 400, "assets/images/UI/kyoto_bg_button.png", 408, 456)
@@ -979,7 +1023,17 @@ save_system = datasave.SaveSystem(
     autosave_every_ms=3000,
     save_version=1,
 )
+draw_loading_screen("Загрузка сохранения...")
 save_system.load(globals())
+VALID_MODES = {
+    "game", "menu", "credits", "achievements", "settings", "minigame", "shelf",
+    "shop", "beluash_preview", "contestant_preview", "energy_drink_preview",
+    "tiger_fruit_preview", "minigun_preview", "teddy_bear_preview", "NamaPass",
+    "sponsors_choice", "trentila_quote", "ospuze_quote", "alfa_acta_quote",
+    "vaiiya_quote", "tutorial_gfield", "exchanger", "backgrounds_shop"
+}
+if mode not in VALID_MODES:
+    mode = "menu"
 play_next_soundtrack()
 print("Game Loaded, Booting up...")
 

@@ -949,7 +949,7 @@ cooldown_timer = Timer(1)
 coin_spawn_timer = Timer(2000)
 coin_boost_timer = Timer(5000)
 
-EXCHANGE_CLICKS_PER_NAMACOIN = 100
+EXCHANGE_CLICKS_PER_NAMACOIN = 50
 
 namapass_5min_timer = Timer(300000)
 namapass_10min_timer = Timer(600000)

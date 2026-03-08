@@ -259,6 +259,7 @@ class BuffMachine:
     def __init__(self) -> None:
         self.shuffle_result = None
         self.last_result_text = None
+        self.last_effect_kind = None
         self.active_effect_id = None
         self.active_effect_timer = None
         self.active_effect_tick_timer = None
@@ -269,6 +270,7 @@ class BuffMachine:
         text, etype, duration_ms, tick_ms, tick_val, _ = self.EFFECTS[self.active_effect_id]
         self.shuffle_result = text
         self.last_result_text = text
+        self.last_effect_kind = etype
 
         if duration_ms > 0:
             self.active_effect_timer = Timer(duration_ms)
@@ -729,13 +731,8 @@ class BoostCoin(Coin):
 
 class Course:
     def __init__(self) -> None:
-        self.course_coins = 0.0
-        self.course_clicks = 0.0
-
-    def courses_update(self):
         self.course_clicks = float(EXCHANGE_CLICKS_PER_NAMACOIN)
         self.course_coins = round(1.0 / EXCHANGE_CLICKS_PER_NAMACOIN, 6)
-        return self.course_coins, self.course_clicks
 
 def add_clicks():
     global \
@@ -908,7 +905,7 @@ cooldown_timer = Timer(1)
 coin_spawn_timer = Timer(2000)
 coin_boost_timer = Timer(5000)
 
-EXCHANGE_CLICKS_PER_NAMACOIN = 400
+EXCHANGE_CLICKS_PER_NAMACOIN = 100
 
 namapass_5min_timer = Timer(300000)
 namapass_10min_timer = Timer(600000)
@@ -934,13 +931,11 @@ button_machine = Button(
     BUFF_MACHINE_Y + buff_machine_image.get_height() + 48
 )
 buffm = BuffMachine()
-buffm_intermission_timer = Timer(120000) #120000
+buffm_intermission_timer = Timer(3000) #120000
 show_buff_effect_end_notice = False
 buff_effect_end_notice_timer = Timer(2000)
 
 course = Course()
-course.courses_update()
-course_timer = Timer(60000)
 
 coins = []
 MAX_COINS = 5
@@ -1503,20 +1498,22 @@ while running:
         effect_title = "Эффект:"
         effect_text = buffm.last_result_text if buffm.last_result_text else "Пока нет эффекта"
 
+        current_effect_kind = buffm.last_effect_kind
         if buffm.active_effect_id is not None:
-            _, effect_kind, _, _, _, _ = buffm.EFFECTS[buffm.active_effect_id]
-            if effect_kind == "buff":
-                effect_color = (140, 255, 140)
-                effect_title = "Бафф:"
-            else:
-                effect_color = (255, 140, 140)
-                effect_title = "Дебафф:"
+            _, current_effect_kind, _, _, _, _ = buffm.EFFECTS[buffm.active_effect_id]
+
+        if current_effect_kind == "buff":
+            effect_color = (140, 255, 140)
+            effect_title = "Бафф:"
+        elif current_effect_kind == "debuff":
+            effect_color = (255, 140, 140)
+            effect_title = "Дебафф:"
 
         effect_y = button_machine.y + 70
         screen.blit(font_25.render(effect_title, True, effect_color), (BUFF_MACHINE_TEXT_X, effect_y))
         if show_buff_effect_end_notice:
             screen.blit(
-                font_20.render("ENDED", True, (255, 245, 140)),
+                font_20.render("Эффект кончился", True, (255, 245, 140)),
                 (BUFF_MACHINE_TEXT_X + 112, effect_y + 4)
             )
         effect_y += 24
@@ -1551,10 +1548,18 @@ while running:
                 locked_button_gfield,
                 (button_to_minigame_from_game.x, button_to_minigame_from_game.y)
             )
-        screen.blit(
-            font_30.render(f"Буст: x{boost + 1}", True, BLACK),
+        
+        if boost >= 50:
+            screen.blit(
+            font_30.render("Буст: Макс.", True, BLACK),
             (55, 650)
         )
+        else:
+            screen.blit(
+                font_30.render(f"Буст: x{boost + 1}", True, BLACK),
+                (55, 650)
+            )
+
         screen.blit(
             font_25.render(f"Цена: {int(required_clicks_for_boost)}", True, BLACK),
             (56, 676)
@@ -2010,10 +2015,6 @@ while running:
         button_exchange_to_coins.draw(screen)
         button_exchange_to_clicks.draw(screen)
 
-        if course_timer.done():
-            course.courses_update()
-            course_timer.reset()
-
         screen.blit(
             font_30.render("Назад", True, BLACK),
             (button_exchanging_back_to_shop.x + 52.5, button_exchanging_back_to_shop.y + 10.5)
@@ -2033,14 +2034,6 @@ while running:
         screen.blit(
             font_30.render("Обменять", True, BLACK),
             (button_exchange_to_clicks.x + 25, button_exchange_to_clicks.y + 10.5)
-        )
-        screen.blit(
-            font_30.render(f"Курс: {course.course_clicks}", True, BLACK),
-            (150, button_exchange_to_clicks.y + 10.5)
-        )
-        screen.blit(
-            font_30.render(f"Курс: {course.course_coins}", True, BLACK),
-            (150, button_exchange_to_coins.y + 10.5)
         )
 
     if mode == "backgrounds_shop":

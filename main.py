@@ -931,7 +931,7 @@ button_machine = Button(
     BUFF_MACHINE_Y + buff_machine_image.get_height() + 48
 )
 buffm = BuffMachine()
-buffm_intermission_timer = Timer(3000) #120000
+buffm_intermission_timer = Timer(120000)
 show_buff_effect_end_notice = False
 buff_effect_end_notice_timer = Timer(2000)
 

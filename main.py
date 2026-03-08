@@ -153,6 +153,7 @@ purchase_failed = load_sound("assets/sounds/sfxes/purchase_failed.mp3")
 coins_collecting = load_sound("assets/sounds/sfxes/NamaCoins_collecting.mp3")
 nofitication_sound = load_sound("assets/sounds/sfxes/announcement.mp3")
 inserted_coin = load_sound("assets/sounds/sfxes/inserted_coin.mp3")
+slap_sound = load_sound("assets/sounds/sfxes/slapping_sound.mp3")
 
 class NamaPassbanner:
     def __init__(self):
@@ -374,10 +375,32 @@ class Background:
         self.equipped = False
         self.x_button = x_button
         self.y_button = y_button
-        self.buy_button_image = load_image(buy_button_path, alpha=True)
-        self.button_rect = self.buy_button_image.get_rect(topleft=(x_button, y_button))
+        self.original_button_image = load_image(buy_button_path, alpha=True)
+        self.buy_button_image = self.original_button_image
+        self.button_base_rect = self.original_button_image.get_rect(topleft=(x_button, y_button))
+        self.button_rect = self.button_base_rect.copy()
+        self.scale = 1.0
+        self.target_scale = 1.0
+        self.scale_speed = 0.15
 
     def draw_button(self, screen):
+        mouse_pos = pygame.mouse.get_pos()
+        if self.button_base_rect.collidepoint(mouse_pos):
+            self.target_scale = 0.92
+        else:
+            self.target_scale = 1.0
+
+        if self.scale != self.target_scale:
+            self.scale += (self.target_scale - self.scale) * self.scale_speed
+            if abs(self.scale - self.target_scale) < 0.01:
+                self.scale = self.target_scale
+            size = (
+                int(self.original_button_image.get_width() * self.scale),
+                int(self.original_button_image.get_height() * self.scale),
+            )
+            self.buy_button_image = pygame.transform.smoothscale(self.original_button_image, size)
+            self.button_rect = self.buy_button_image.get_rect(center=self.button_base_rect.center)
+
         screen.blit(self.buy_button_image, self.button_rect)
 
     def buy(self):

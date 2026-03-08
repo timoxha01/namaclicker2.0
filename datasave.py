@@ -311,6 +311,8 @@ class SaveSystem:
         try:
             with open(self.save_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
+            loaded_version = self._safe_int(data.get("version", self.save_version), self.save_version)
+            self.save_version = max(self.save_version, loaded_version)
             self.apply_state(ctx, data)
             return True
         except Exception:
@@ -318,6 +320,7 @@ class SaveSystem:
 
     def save(self, ctx: dict) -> bool:
         try:
+            self.save_version += 1
             state = self.build_state(ctx)
             tmp_path = self.save_path + ".tmp"
             with open(tmp_path, "w", encoding="utf-8") as f:

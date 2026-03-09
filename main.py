@@ -958,18 +958,38 @@ minigun = ShopItems("assets/images/shop_items/minigun.png", None, 722, 430)
 
 kiro_phrases = [
     "А тут, красиво...",
+    "Я столько лет был там...",
+    "Он исчез.",
+    "У него была целая коллекция комиксов!",
+    "...Мне было очень больно."
 ]
 ronald_phrases = [
     "Ого! Так вот какой этот мир на поверхности!",
-    "Здесь такая зелёная и яркая трава! Такую я видел только на картинках и обучающих видео!"
+    "Здесь такая зелёная и яркая трава! Такую я видел только на картинках и обучающих видео!",
+    "Хоть мне и 25, в душе я всё такой-же сорванец.",
+    "Что если мы живём в нулях и единицах?"
 ]
 oshu_phrases = [
-    "Мхм... так не приятно, когда солнце бьёт прямо в глаза!"
+    "Мхм... так не приятно, когда солнце бьёт прямо в глаза!",
+    "Мои друзья... Они... Забей.",
+    f"Цени друзей, {os.getlogin()}. Их потерять легче чем ты думаешь...",
+    "Я должен найти ответы на все свои вопросы.",
+    "Я понял... Я осознал себя"
 ]
 
 kiroCharacter = CharacterDialogues(
     "Киро", kiro_phrases, "assets/images/characters/kiro/kiro_original.png",
     "assets/images/characters/kiro/kiro_dialogue_widget.png", 43, 23, 190, 10
+)
+
+ronaldCharacter = CharacterDialogues(
+    "Рональд", ronald_phrases, "assets/images/characters/ronald/ronald_original.png",
+    "assets/images/characters/ronald/ronald_dialogue_widget.png", 363, 23, 458 + 60, 23
+)
+
+oshuCharacter = CharacterDialogues(
+    "Ошу", oshu_phrases, "assets/images/characters/oshu/oshu_original.png",
+    "assets/images/characters/oshu/oshu_dialogue_widget.png", 772, 195, 861 + 60, 203
 )
 
 song_popouts = {
@@ -1526,6 +1546,24 @@ while running:
             ):
                 volume_changing_sound.play()
                 kiroCharacter.activate()
+            
+            if (
+                event.key == pygame.K_e
+                and mode == "minigame"
+                and namaPlayer.rect.colliderect(ronaldCharacter.rect)
+                and not ronaldCharacter.isTriggered
+            ):
+                volume_changing_sound.play()
+                ronaldCharacter.activate()
+            
+            if (
+                event.key == pygame.K_e
+                and mode == "minigame"
+                and namaPlayer.rect.colliderect(oshuCharacter.rect)
+                and not oshuCharacter.isTriggered
+            ):
+                volume_changing_sound.play()
+                oshuCharacter.activate()
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT] or keys[pygame.K_a] and mode == "minigame":
@@ -1856,6 +1894,28 @@ while running:
             kiroCharacter.isTriggered = False
 
         kiroCharacter.drawDialogueWindow(screen)
+
+        ronaldCharacter.draw(screen)
+
+        if (
+            namaPlayer.rect.colliderect(ronaldCharacter.rect)
+        ):
+            ronaldCharacter.draw_button(screen)
+        else:
+            ronaldCharacter.isTriggered = False
+
+        ronaldCharacter.drawDialogueWindow(screen)
+
+        oshuCharacter.draw(screen)
+
+        if (
+            namaPlayer.rect.colliderect(oshuCharacter.rect)
+        ):
+            oshuCharacter.draw_button(screen)
+        else:
+            oshuCharacter.isTriggered = False
+
+        oshuCharacter.drawDialogueWindow(screen)
 
         if coin_spawn_timer.done() and len(coins) < MAX_COINS:
             if random.random() < 0.2:

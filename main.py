@@ -1321,86 +1321,62 @@ while running:
                 teddy_bear.rect.collidepoint(event.pos)
                 and mode == "shop"
             ):
-                isLoading = True
-                next_mode = "teddy_bear_preview"
-                cooldown_timer.reset()
+                load_mode("teddy_bear_preview")
             if (
                 beluash.rect.collidepoint(event.pos)
                 and mode == "shop"
             ):
-                isLoading = True
-                next_mode = "beluash_preview"
-                cooldown_timer.reset()
+                load_mode("beluash_preview")
             if (
                 energy_drink.rect.collidepoint(event.pos)
                 and mode == "shop"
             ):
-                isLoading = True
-                next_mode = "energy_drink_preview"
-                cooldown_timer.reset()
+                load_mode("energy_drink_preview")
             if (
                 tiger_fruit.rect.collidepoint(event.pos)
                 and mode == "shop"
             ):
-                isLoading = True
-                next_mode = "tiger_fruit_preview"
-                cooldown_timer.reset()
+                load_mode("tiger_fruit_preview")
             if (
                 minigun.rect.collidepoint(event.pos)
                 and mode == "shop"
             ):
-                isLoading = True
-                next_mode = "minigun_preview"
-                cooldown_timer.reset()
+                load_mode("minigun_preview")
             if (
                 contestant.rect.collidepoint(event.pos)
                 and mode == "shop" 
             ):
-                isLoading = True
-                next_mode = "contestant_preview"
-                cooldown_timer.reset()
+                load_mode("contestant_preview")
             if (
                 button_to_sponsors_from_NamaPass.rect.collidepoint(event.pos)
                 and mode == "NamaPass"
             ):
-                isLoading = True
-                next_mode = "sponsors_choice"
-                cooldown_timer.reset()
+                load_mode("sponsors_choice")
             if (
                 button_back_from_sponsors_choice.rect.collidepoint(event.pos)
                 and mode == "sponsors_choice"
             ):
-                isLoading = True
-                next_mode = "NamaPass"
-                cooldown_timer.reset()
+                load_mode("NamaPass")
             if (
                 trentila_button.rect.collidepoint(event.pos)
                 and mode == "sponsors_choice"
             ):
-                isLoading = True
-                next_mode = "trentila_sponsor_quote"
-                cooldown_timer.reset()
+                load_mode("trentila_sponsor_quote")
             if (
                 ospuze_button.rect.collidepoint(event.pos)
                 and mode == "sponsors_choice"
             ):
-                isLoading = True
-                next_mode = "ospuze_sponsor_quote"
-                cooldown_timer.reset()
+                load_mode("ospuze_sponsor_quote")
             if (
                 alfa_acta_button.rect.collidepoint(event.pos)
                 and mode == "sponsors_choice"
             ):
-                isLoading = True
-                next_mode = "alfa_acta_sponsor_quote"
-                cooldown_timer.reset()
+                load_mode("alfa_acta_sponsor_quote")
             if (
                 vaiiya_button.rect.collidepoint(event.pos)
                 and mode == "sponsors_choice"
             ):
-                isLoading = True
-                next_mode = "vaiiya_sponsor_quote"
-                cooldown_timer.reset()
+                load_mode("vaiiya_sponsor_quote")
             
 
             if (
@@ -1409,26 +1385,20 @@ while running:
                         "energy_drink_preview", "tiger_fruit_preview",
                             "minigun_preview", "contestant_preview"]
                 ):
-                isLoading = True
-                next_mode = "shop"
-                cooldown_timer.reset()
+                load_mode("shop")
 
             if (
                 button_back_from_sponsors_quotes.rect.collidepoint(event.pos)
                 and mode in ["ospuze_sponsor_quote", "trentila_sponsor_quote", 
                         "alfa_acta_sponsor_quote", "vaiiya_sponsor_quote"]
                 ):
-                isLoading = True
-                next_mode = "sponsors_choice"
-                cooldown_timer.reset()
+                load_mode("sponsors_choice")
             
             if (
                 button_back_from_backgrounds_shop.rect.collidepoint(event.pos)
                 and mode == "backgrounds_shop"
             ):
-                isLoading = True
-                next_mode = "game"
-                cooldown_timer.reset()
+                load_mode("game")
 
             #buff machine
             if (
@@ -1445,9 +1415,7 @@ while running:
                 button_to_backgrounds_shop.rect.collidepoint(event.pos)
                 and mode == "game"
             ):
-                isLoading = True
-                next_mode = "backgrounds_shop"
-                cooldown_timer.reset()
+                load_mode("backgrounds_shop")
             
             if (seoul_bg.button_rect.collidepoint(event.pos) and mode == "backgrounds_shop"):
                 if not seoul_bg.isBought:

@@ -11,7 +11,7 @@ print("Loading...")
 
 W, H = 1000, 800
 FPS = 60
-mode = "menu"
+mode = "minigame"
 
 GAME_FONT = "assets/fonts/Tiny5-Regular.ttf"
 
@@ -365,6 +365,64 @@ class BuffMachine:
             mult = int(self.active_effect_tick_value)
             return max(1, mult)
         return 1
+
+class CharacterDialogues:
+    def __init__(self, name, phrases, image_path, dialogueWindow_path, image_path_x, image_path_y, button_x, button_y) -> None:
+        self.name = name
+        self.phrases = phrases
+        self.image_path = load_image(image_path, alpha=True)
+        self.image_path_x = int(image_path_x)
+        self.image_path_y = int(image_path_y)
+        self.rect = self.image_path.get_rect()
+        self.dialogueWindow = load_image(dialogueWindow_path, alpha=True)
+        self.isTriggered = False
+        self.dialogueText = ""
+        self.visible_chars = 0
+        self.char_delay_ms = 35
+        self.last_char_tick = pygame.time.get_ticks()
+        self.isEntered = False
+        self.eButton_image = load_image("assets/images/UI/eButton.png")
+        self.button_x = button_x
+        self.button_y = button_y
+
+    def shufflePhrases(self):
+        self.dialogueText = random.choice(self.phrases)
+        self.visible_chars = 0
+        self.last_char_tick = pygame.time.get_ticks()
+
+    def update_typing_effect(self):
+        if not self.isTriggered:
+            return
+        if self.visible_chars >= len(self.dialogueText):
+            return
+
+        now = pygame.time.get_ticks()
+        elapsed = now - self.last_char_tick
+        if elapsed < self.char_delay_ms:
+            return
+
+        chars_to_add = max(1, elapsed // self.char_delay_ms)
+        self.visible_chars = min(len(self.dialogueText), self.visible_chars + chars_to_add)
+        self.last_char_tick += chars_to_add * self.char_delay_ms
+
+    def drawDialogueWindow(self, screen):
+        if self.isTriggered:
+            self.update_typing_effect()
+            screen.blit(self.dialogueWindow, (0, 662))
+            screen.blit(font_30.render(self.name, True, BLACK), (43, 662))
+            typed_text = self.dialogueText[:self.visible_chars]
+            screen.blit(font_30.render(typed_text, True, BLACK), (30, 750))
+
+    def draw(self, screen):
+        self.rect.topleft = (self.image_path_x, self.image_path_y)
+        screen.blit(self.image_path, (self.image_path_x, self.image_path_y))
+
+    def draw_button(self, screen):
+        screen.blit(self.eButton_image, (self.button_x, self.button_y))
+
+    def activate(self):
+        self.shufflePhrases()
+        self.isTriggered = True
 
 class Background:
     def __init__(self, bg_path, price, buy_button_path, x_button, y_button) -> None:
@@ -898,6 +956,22 @@ energy_drink = ShopItems("assets/images/shop_items/energy_drink.png", None, 410,
 tiger_fruit = ShopItems("assets/images/shop_items/tiger_fruit.png", None, 98, 430)
 minigun = ShopItems("assets/images/shop_items/minigun.png", None, 722, 430)
 
+kiro_phrases = [
+    "А тут, красиво...",
+]
+ronald_phrases = [
+    "Ого! Так вот какой этот мир на поверхности!",
+    "Здесь такая зелёная и яркая трава! Такую я видел только на картинках и обучающих видео!"
+]
+oshu_phrases = [
+    "Мхм... так не приятно, когда солнце бьёт прямо в глаза!"
+]
+
+kiroCharacter = CharacterDialogues(
+    "Киро", kiro_phrases, "assets/images/characters/kiro/kiro_original.png",
+    "assets/images/characters/kiro/kiro_dialogue_widget.png", 43, 23, 190, 10
+)
+
 song_popouts = {
     "GoldStandard_ost.mp3": SongsPopouts("assets/images/UI/GoldStandard_SongCard.png"),
     "Stardust_ost.mp3": SongsPopouts("assets/images/UI/Stardust_SongCard.png"),
@@ -1009,7 +1083,7 @@ required_clicks_for_boost = 100
 current_music_credits = None
 isLoading = False
 isReached1000clicks = False
-isTutorialWatched = False
+isTutorialWatched = True
 notif_visible = False
 notif_timer = Timer(1500)
 notif_5_shown = False
@@ -1444,6 +1518,14 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE and mode == "game":
                 add_clicks()
+            if (
+                event.key == pygame.K_e
+                and mode == "minigame"
+                and namaPlayer.rect.colliderect(kiroCharacter.rect)
+                and not kiroCharacter.isTriggered
+            ):
+                volume_changing_sound.play()
+                kiroCharacter.activate()
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT] or keys[pygame.K_a] and mode == "minigame":
@@ -1763,6 +1845,17 @@ while running:
 
         for coin in coins:
             coin.draw(screen)
+
+        kiroCharacter.draw(screen)
+
+        if (
+            namaPlayer.rect.colliderect(kiroCharacter.rect)
+        ):
+            kiroCharacter.draw_button(screen)
+        else:
+            kiroCharacter.isTriggered = False
+
+        kiroCharacter.drawDialogueWindow(screen)
 
         if coin_spawn_timer.done() and len(coins) < MAX_COINS:
             if random.random() < 0.2:

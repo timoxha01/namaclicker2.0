@@ -153,7 +153,6 @@ purchase_failed = load_sound("assets/sounds/sfxes/purchase_failed.mp3")
 coins_collecting = load_sound("assets/sounds/sfxes/NamaCoins_collecting.mp3")
 nofitication_sound = load_sound("assets/sounds/sfxes/announcement.mp3")
 inserted_coin = load_sound("assets/sounds/sfxes/inserted_coin.mp3")
-slap_sound = load_sound("assets/sounds/sfxes/slapping_sound.mp3")
 
 class NamaPassbanner:
     def __init__(self):

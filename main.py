@@ -3,6 +3,32 @@ import math
 import pygame
 import os
 import datasave
+from collections import OrderedDict
+
+
+class CachedFont:
+    def __init__(self, font, max_cache=512):
+        self._font = font
+        self._cache = OrderedDict()
+        self._max_cache = max_cache
+
+    def render(self, text, antialias, color):
+        key = (text, antialias, color)
+        cached = self._cache.get(key)
+        if cached is not None:
+            self._cache.move_to_end(key)
+            return cached
+        surface = self._font.render(text, antialias, color)
+        self._cache[key] = surface
+        if len(self._cache) > self._max_cache:
+            self._cache.popitem(last=False)
+        return surface
+
+    def size(self, text):
+        return self._font.size(text)
+
+    def __getattr__(self, name):
+        return getattr(self._font, name)
 
 pygame.init()
 pygame.mixer.init()
@@ -11,7 +37,7 @@ print("Loading...")
 
 W, H = 1000, 800
 FPS = 60
-mode = "minigame"
+mode = "menu"
 
 GAME_FONT = "assets/fonts/Tiny5-Regular.ttf"
 
@@ -39,10 +65,10 @@ pygame.display.set_caption("NamaClicker 2.0")
 screen = pygame.display.set_mode((W, H))
 clock = pygame.time.Clock()
 pygame.display.set_icon(pygame.image.load("assets/images/tamas/classic.png"))
-font_40 = pygame.font.Font(GAME_FONT, 40)
-font_30 = pygame.font.Font(GAME_FONT, 30)
-font_25 = pygame.font.Font(GAME_FONT, 25)
-font_20 = pygame.font.Font(GAME_FONT, 20)
+font_40 = CachedFont(pygame.font.Font(GAME_FONT, 40))
+font_30 = CachedFont(pygame.font.Font(GAME_FONT, 30))
+font_25 = CachedFont(pygame.font.Font(GAME_FONT, 25))
+font_20 = CachedFont(pygame.font.Font(GAME_FONT, 20))
 
 _image_cache = {}
 _sound_cache = {}
@@ -283,6 +309,7 @@ class BuffMachine:
         "debuff2": ("В NamaPass к текущему оставшемуся времени добавляется 30 секунд!", "debuff", 0, 0, 30000, "namapass_delay"),
         "debuff3": ("NamaCoins делятся на 2", "debuff", 0, 0, 0, "halve_coins"),
     }
+    EFFECT_KEYS = tuple(EFFECTS.keys())
 
     def __init__(self) -> None:
         self.shuffle_result = None
@@ -294,7 +321,7 @@ class BuffMachine:
         self.active_effect_tick_value = 0
 
     def shuffle(self):
-        self.active_effect_id = random.choice(list(self.EFFECTS.keys()))
+        self.active_effect_id = random.choice(self.EFFECT_KEYS)
         text, etype, duration_ms, tick_ms, tick_val, _ = self.EFFECTS[self.active_effect_id]
         self.shuffle_result = text
         self.last_result_text = text
@@ -315,7 +342,6 @@ class BuffMachine:
         return self.shuffle_result
 
     def apply_instant_effects(self, ctx):
-        """Применяет мгновенные эффекты (debuff2, debuff3)."""
         if self.active_effect_id is None:
             return
         _, _, duration_ms, _, tick_val, effect_type = self.EFFECTS[self.active_effect_id]
@@ -331,7 +357,6 @@ class BuffMachine:
             self.active_effect_id = None
 
     def update_timed_effects(self, ctx):
-        """Обновляет эффекты с таймером (buff1, buff2, buff3, debuff1)."""
         if self.active_effect_id is None or self.active_effect_timer is None:
             return
         if self.active_effect_timer.done():
@@ -347,7 +372,7 @@ class BuffMachine:
             if effect_type == "clicks":
                 ctx["total_clicks"] = max(0, round(float(ctx["total_clicks"]) + self.active_effect_tick_value))
             elif effect_type == "boost_bonus":
-                pass  # обрабатывается в add_clicks через buff_boost_bonus
+                pass
 
     def get_boost_bonus(self):
         if self.active_effect_id is None:

@@ -46,13 +46,12 @@ font_20 = pygame.font.Font(GAME_FONT, 20)
 
 _image_cache = {}
 _sound_cache = {}
-loading_font = pygame.font.SysFont("arial", 28)
 
 
 def draw_loading_screen(message):
     screen.fill((18, 18, 18))
-    title = loading_font.render("NamaClicker 2.0", True, (230, 230, 230))
-    text = loading_font.render(message, True, (180, 180, 180))
+    title = font_30.render("NamaClicker 2.0", True, (230, 230, 230))
+    text = font_30.render(message, True, (180, 180, 180))
     screen.blit(title, (W // 2 - title.get_width() // 2, H // 2 - 36))
     screen.blit(text, (W // 2 - text.get_width() // 2, H // 2 + 8))
     pygame.display.flip()
@@ -153,6 +152,7 @@ purchase_failed = load_sound("assets/sounds/sfxes/purchase_failed.mp3")
 coins_collecting = load_sound("assets/sounds/sfxes/NamaCoins_collecting.mp3")
 nofitication_sound = load_sound("assets/sounds/sfxes/announcement.mp3")
 inserted_coin = load_sound("assets/sounds/sfxes/inserted_coin.mp3")
+text_dialogue_sound = load_sound("assets/sounds/sfxes/text_dialogue.mp3")
 
 class NamaPassbanner:
     def __init__(self):
@@ -380,6 +380,8 @@ class CharacterDialogues:
         self.visible_chars = 0
         self.char_delay_ms = 35
         self.last_char_tick = pygame.time.get_ticks()
+        self.dialogue_sound_delay_ms = 70
+        self.last_dialogue_sound_tick = 0
         self.isEntered = False
         self.eButton_image = load_image("assets/images/UI/eButton.png")
         self.button_x = button_x
@@ -404,6 +406,9 @@ class CharacterDialogues:
         chars_to_add = max(1, elapsed // self.char_delay_ms)
         self.visible_chars = min(len(self.dialogueText), self.visible_chars + chars_to_add)
         self.last_char_tick += chars_to_add * self.char_delay_ms
+        if now - self.last_dialogue_sound_tick >= self.dialogue_sound_delay_ms:
+            text_dialogue_sound.play()
+            self.last_dialogue_sound_tick = now
 
     def drawDialogueWindow(self, screen):
         if self.isTriggered:
@@ -910,6 +915,7 @@ def update_volume():
         cfa_1000000_clicks.achievement_sound,
         volume_changing_sound,
         byebye_nama_sound,
+        text_dialogue_sound,
     ]:
         sound.set_volume(VOLUME)
 
@@ -961,18 +967,19 @@ kiro_phrases = [
     "Я столько лет был там...",
     "Он исчез.",
     "У него была целая коллекция комиксов!",
-    "...Мне было очень больно."
+    "...Мне было очень больно.",
 ]
 ronald_phrases = [
     "Ого! Так вот какой этот мир на поверхности!",
-    "Здесь такая зелёная и яркая трава! Такую я видел только на картинках и обучающих видео!",
+    "Здесь такая зелёная и яркая трава!",
     "Хоть мне и 25, в душе я всё такой-же сорванец.",
-    "Что если мы живём в нулях и единицах?"
+    "Что если мы живём в нулях и единицах?",
+    "Нас сделал ChatGPT..."
 ]
 oshu_phrases = [
     "Мхм... так не приятно, когда солнце бьёт прямо в глаза!",
     "Мои друзья... Они... Забей.",
-    f"Цени друзей, {os.getlogin()}. Их потерять легче чем ты думаешь...",
+    f"Цени друзей, {os.getlogin()}.",
     "Я должен найти ответы на все свои вопросы.",
     "Я понял... Я осознал себя"
 ]
@@ -1103,7 +1110,7 @@ required_clicks_for_boost = 100
 current_music_credits = None
 isLoading = False
 isReached1000clicks = False
-isTutorialWatched = True
+isTutorialWatched = False
 notif_visible = False
 notif_timer = Timer(1500)
 notif_5_shown = False

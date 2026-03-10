@@ -941,6 +941,11 @@ def update_volume():
         volume_changing_sound,
         byebye_nama_sound,
         text_dialogue_sound,
+        purchase_success,
+        purchase_failed,
+        coins_collecting,
+        nofitication_sound,
+        inserted_coin
     ]:
         sound.set_volume(VOLUME)
 

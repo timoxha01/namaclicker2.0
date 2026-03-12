@@ -976,7 +976,7 @@ def load_mode(mode):
 draw_loading_screen("Инициализация мира...")
 seoul_bg = Background("assets/images/UI/seoul_bg.png", 100, "assets/images/UI/seoul_buy_button.png", 408, 246)
 kyoto_bg = Background("assets/images/UI/kyoto_bg.png", 250, "assets/images/UI/kyoto_bg_button.png", 408, 351)
-bernal_bg = Background("assets/images/UI/bernal_bg.png", 400, "assets/images/UI/kyoto_bg_button.png", 408, 456)
+bernal_bg = Background("assets/images/UI/bernal_bg.png", 400, "assets/images/UI/bernal_bg_button.png", 408, 456)
 
 cfa_collect_all_tamas = Achievements("Собрать все NamaTama", 64, 80)
 cfa_sanic_popout = Achievements("Встретить Sanic", 372, 80)

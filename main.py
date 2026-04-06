@@ -992,6 +992,43 @@ energy_drink = ShopItems("assets/images/shop_items/energy_drink.png", None, 410,
 tiger_fruit = ShopItems("assets/images/shop_items/tiger_fruit.png", None, 98, 430)
 minigun = ShopItems("assets/images/shop_items/minigun.png", None, 722, 430)
 
+kiro_phrases = [
+    "А тут, красиво...",
+    "Я столько лет был там...",
+    "Он исчез.",
+    "У него была целая коллекция комиксов!",
+    "...Мне было очень больно.",
+]
+ronald_phrases = [
+    "Ого! Так вот какой этот мир на поверхности!",
+    "Здесь такая зелёная и яркая трава!",
+    "Хоть мне и 25, в душе я всё такой-же сорванец.",
+    "Что если мы живём в нулях и единицах?",
+    "Нас сделал ChatGPT..."
+]
+oshu_phrases = [
+    "Мхм... так не приятно, когда солнце бьёт прямо в глаза!",
+    "Мои друзья... Они... Забей.",
+    f"Цени друзей, {os.getlogin()}.",
+    "Я должен найти ответы на все свои вопросы.",
+    "Я понял... Я осознал себя"
+]
+
+kiroCharacter = CharacterDialogues(
+    "Киро", kiro_phrases, "assets/images/characters/kiro/kiro_original.png",
+    "assets/images/characters/kiro/kiro_dialogue_widget.png", 43, 23, 190, 10
+)
+
+ronaldCharacter = CharacterDialogues(
+    "Рональд", ronald_phrases, "assets/images/characters/ronald/ronald_original.png",
+    "assets/images/characters/ronald/ronald_dialogue_widget.png", 363, 23, 458 + 60, 23
+)
+
+oshuCharacter = CharacterDialogues(
+    "Ошу", oshu_phrases, "assets/images/characters/oshu/oshu_original.png",
+    "assets/images/characters/oshu/oshu_dialogue_widget.png", 772, 195, 861 + 60, 203
+)
+
 song_popouts = {
     "GoldStandard_ost.mp3": SongsPopouts("assets/images/UI/GoldStandard_SongCard.png"),
     "Stardust_ost.mp3": SongsPopouts("assets/images/UI/Stardust_SongCard.png"),
@@ -1535,6 +1572,36 @@ while running:
                     kyoto_bg.equipped = False
                     bernal_bg.equip()
 
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE and mode == "game":
+                add_clicks()
+            if (
+                event.key == pygame.K_e
+                and mode == "minigame"
+                and namaPlayer.rect.colliderect(kiroCharacter.rect)
+                and not kiroCharacter.isTriggered
+            ):
+                volume_changing_sound.play()
+                kiroCharacter.activate()
+            
+            if (
+                event.key == pygame.K_e
+                and mode == "minigame"
+                and namaPlayer.rect.colliderect(ronaldCharacter.rect)
+                and not ronaldCharacter.isTriggered
+            ):
+                volume_changing_sound.play()
+                ronaldCharacter.activate()
+            
+            if (
+                event.key == pygame.K_e
+                and mode == "minigame"
+                and namaPlayer.rect.colliderect(oshuCharacter.rect)
+                and not oshuCharacter.isTriggered
+            ):
+                volume_changing_sound.play()
+                oshuCharacter.activate()
+
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT] or keys[pygame.K_a] and mode == "minigame":
         namaPlayer.x -= 5
@@ -1853,6 +1920,39 @@ while running:
 
         for coin in coins:
             coin.draw(screen)
+
+        kiroCharacter.draw(screen)
+
+        if (
+            namaPlayer.rect.colliderect(kiroCharacter.rect)
+        ):
+            kiroCharacter.draw_button(screen)
+        else:
+            kiroCharacter.isTriggered = False
+
+        kiroCharacter.drawDialogueWindow(screen)
+
+        ronaldCharacter.draw(screen)
+
+        if (
+            namaPlayer.rect.colliderect(ronaldCharacter.rect)
+        ):
+            ronaldCharacter.draw_button(screen)
+        else:
+            ronaldCharacter.isTriggered = False
+
+        ronaldCharacter.drawDialogueWindow(screen)
+
+        oshuCharacter.draw(screen)
+
+        if (
+            namaPlayer.rect.colliderect(oshuCharacter.rect)
+        ):
+            oshuCharacter.draw_button(screen)
+        else:
+            oshuCharacter.isTriggered = False
+
+        oshuCharacter.drawDialogueWindow(screen)
 
         if coin_spawn_timer.done() and len(coins) < MAX_COINS:
             if random.random() < 0.2:

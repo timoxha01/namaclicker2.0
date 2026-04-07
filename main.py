@@ -104,7 +104,7 @@ def load_sound(path):
     return sound
 
 
-draw_loading_screen("Загрузка ассетов...")
+draw_loading_screen("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ...")
 
 credits_bg_ru = load_image("assets/images/UI/credits.png", alpha=False)
 menu_screen = load_image("assets/images/UI/menu_screen.png", alpha=False)
@@ -166,7 +166,7 @@ trentila_quote = load_image("assets/images/UI/trentila_info.png", alpha=True)
 ospuze_quote = load_image("assets/images/UI/ospuze_info.png", alpha=True)
 alfa_acta_quote = load_image("assets/images/UI/alfa_acta_info.png", alpha=True)
 
-draw_loading_screen("Загрузка звуков...")
+draw_loading_screen("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ...")
 byebye_nama_sound = load_sound("assets/sounds/sfxes/namatama_byebye.mp3")
 click_sound = load_sound("assets/sounds/sfxes/click_sound.mp3")
 mouse_click_sound = load_sound("assets/sounds/sfxes/mouse_click.mp3")
@@ -302,12 +302,12 @@ class Namas:
 
 class BuffMachine:
     EFFECTS = {
-        "buff1": ("x1.1 кликов каждые 10 секунд на протяжении минуты!", "buff", 60000, 10000, 1.1, "clicks"),
-        "buff2": ("Буст увеличивается на 2 на 10 секунд!", "buff", 10000, 0, 2, "boost_bonus"),
-        "buff3": ("x3 NamaCoins на ферме!", "buff", 60000, 0, 3, "farm_coins"),
-        "debuff1": ("-10 кликов каждые 3 секунды на протяжении 30 секунд!", "debuff", 30000, 3000, -10, "clicks"),
-        "debuff2": ("В NamaPass к текущему оставшемуся времени добавляется 30 секунд!", "debuff", 0, 0, 30000, "namapass_delay"),
-        "debuff3": ("NamaCoins делятся на 2", "debuff", 0, 0, 0, "halve_coins"),
+        "buff1": ("x1.1 пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ 10 пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ!", "buff", 60000, 10000, 1.1, "clicks"),
+        "buff2": ("пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ 2 пїЅпїЅ 10 пїЅпїЅпїЅпїЅпїЅпїЅ!", "buff", 10000, 0, 2, "boost_bonus"),
+        "buff3": ("x3 NamaCoins пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ!", "buff", 60000, 0, 3, "farm_coins"),
+        "debuff1": ("-10 пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ 3 пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 30 пїЅпїЅпїЅпїЅпїЅпїЅ!", "debuff", 30000, 3000, -10, "clicks"),
+        "debuff2": ("пїЅ NamaPass пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 30 пїЅпїЅпїЅпїЅпїЅпїЅ!", "debuff", 0, 0, 30000, "namapass_delay"),
+        "debuff3": ("NamaCoins пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ 2", "debuff", 0, 0, 0, "halve_coins"),
     }
     EFFECT_KEYS = tuple(EFFECTS.keys())
 
@@ -841,7 +841,7 @@ class Achievements:
     
         screen.blit(self.pop_out_label, self.pop_rect)
         screen.blit(
-            font_40.render("Новое достижение!", True, BLACK),
+            font_40.render("пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ!", True, BLACK),
             (self.pop_rect.x + 40, self.pop_rect.y + 25),
         )
         screen.blit(
@@ -904,7 +904,7 @@ def add_clicks():
     tama_on_screen = choose_tama(tamas)
     tama_on_screen.pulse()
     click_sound.play()
-    # Достижение: Собрать все виды tamas
+    # пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ tamas
     seen_tamas.add(tama_on_screen.name)
     if len(seen_tamas) == len(tamas):
         cfa_collect_all_tamas.unlocked = True
@@ -973,17 +973,17 @@ def load_mode(mode):
     next_mode = mode
     cooldown_timer.reset()
 
-draw_loading_screen("Инициализация мира...")
+draw_loading_screen("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ...")
 seoul_bg = Background("assets/images/UI/seoul_bg.png", 100, "assets/images/UI/seoul_buy_button.png", 408, 246)
 kyoto_bg = Background("assets/images/UI/kyoto_bg.png", 250, "assets/images/UI/kyoto_bg_button.png", 408, 351)
 bernal_bg = Background("assets/images/UI/bernal_bg.png", 400, "assets/images/UI/bernal_bg_button.png", 408, 456)
 
-cfa_collect_all_tamas = Achievements("Собрать все NamaTama", 64, 80)
-cfa_sanic_popout = Achievements("Встретить Sanic", 372, 80)
-cfa_IT = Achievements("Встретить ...", 679, 80)
-cfa_1000_clicks = Achievements("Набрать 1000 кликов", 65, 382)
-cfa_10000_clicks = Achievements("Набрать 10000 кликов", 372, 382)
-cfa_1000000_clicks = Achievements("Набрать 1000000 кликов", 679, 382)
+cfa_collect_all_tamas = Achievements("пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ NamaTama", 64, 80)
+cfa_sanic_popout = Achievements("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Sanic", 372, 80)
+cfa_IT = Achievements("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ...", 679, 80)
+cfa_1000_clicks = Achievements("пїЅпїЅпїЅпїЅпїЅпїЅпїЅ 1000 пїЅпїЅпїЅпїЅпїЅпїЅ", 65, 382)
+cfa_10000_clicks = Achievements("пїЅпїЅпїЅпїЅпїЅпїЅпїЅ 10000 пїЅпїЅпїЅпїЅпїЅпїЅ", 372, 382)
+cfa_1000000_clicks = Achievements("пїЅпїЅпїЅпїЅпїЅпїЅпїЅ 1000000 пїЅпїЅпїЅпїЅпїЅпїЅ", 679, 382)
 
 teddy_bear = ShopItems("assets/images/shop_items/teddy_bear.png", 250, 98, 173)
 beluash = ShopItems("assets/images/shop_items/beluash.png", 500, 410, 173)
@@ -1013,20 +1013,17 @@ oshu_phrases = [
     "РЇ РґРѕР»Р¶РµРЅ РЅР°Р№С‚Рё РѕС‚РІРµС‚С‹ РЅР° РІСЃРµ СЃРІРѕРё РІРѕРїСЂРѕСЃС‹.",
     "РЇ РїРѕРЅСЏР»... РЇ РѕСЃРѕР·РЅР°Р» СЃРµР±СЏ"
 ]
+ronald_phrases = [
+    "РћРіРѕ! РўР°Рє РІРѕС‚ РєР°РєРѕР№ СЌС‚РѕС‚ РјРёСЂ РЅР° РїРѕРІРµСЂС…РЅРѕСЃС‚Рё!",
+    "Р—РґРµСЃСЊ С‚Р°РєР°СЏ Р·РµР»С‘РЅР°СЏ Рё СЏСЂРєР°СЏ С‚СЂР°РІР°! РўР°РєСѓСЋ СЏ РІРёРґРµР» С‚РѕР»СЊРєРѕ РЅР° РєР°СЂС‚РёРЅРєР°С… Рё РѕР±СѓС‡Р°СЋС‰РёС… РІРёРґРµРѕ!"
+]
+oshu_phrases = [
+    "РњС…Рј... С‚Р°Рє РЅРµ РїСЂРёСЏС‚РЅРѕ, РєРѕРіРґР° СЃРѕР»РЅС†Рµ Р±СЊС‘С‚ РїСЂСЏРјРѕ РІ РіР»Р°Р·Р°!"
+]
 
 kiroCharacter = CharacterDialogues(
     "РљРёСЂРѕ", kiro_phrases, "assets/images/characters/kiro/kiro_original.png",
     "assets/images/characters/kiro/kiro_dialogue_widget.png", 43, 23, 190, 10
-)
-
-ronaldCharacter = CharacterDialogues(
-    "Р РѕРЅР°Р»СЊРґ", ronald_phrases, "assets/images/characters/ronald/ronald_original.png",
-    "assets/images/characters/ronald/ronald_dialogue_widget.png", 363, 23, 458 + 60, 23
-)
-
-oshuCharacter = CharacterDialogues(
-    "РћС€Сѓ", oshu_phrases, "assets/images/characters/oshu/oshu_original.png",
-    "assets/images/characters/oshu/oshu_dialogue_widget.png", 772, 195, 861 + 60, 203
 )
 
 song_popouts = {
@@ -1176,7 +1173,7 @@ save_system = datasave.SaveSystem(
     autosave_every_ms=3000,
     save_version=1,
 )
-draw_loading_screen("Загрузка сохранения...")
+draw_loading_screen("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ...")
 save_system.load(globals())
 VALID_MODES = {
     "game", "menu", "credits", "achievements", "settings", "minigame", "shelf",
@@ -1202,7 +1199,7 @@ while running:
         if event.type == MUSIC_END_EVENT:
             play_next_soundtrack()
 
-            # MouseButton действия:
+            # MouseButton пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if button_to_game_from_menu.rect.collidepoint(event.pos) and mode == "menu":
                 load_mode("game")
@@ -1347,7 +1344,7 @@ while running:
             ):
                 load_mode("shop")
 
-            # обменник
+            # пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             if (
                 button_exchange_to_coins.rect.collidepoint(event.pos)
                 and mode == "exchanger"
@@ -1425,7 +1422,7 @@ while running:
                     namapass_minigun_reward.buy()
                     minigun.isBought = True
 
-            #покупка
+            #пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             if (
                 button_buy_bear.rect.collidepoint(event.pos)
                 and mode == "teddy_bear_preview"
@@ -1447,7 +1444,7 @@ while running:
             ):
                 contestant.buy()
 
-            # магазин - isPreview
+            # пїЅпїЅпїЅпїЅпїЅпїЅпїЅ - isPreview
             if (
                 teddy_bear.rect.collidepoint(event.pos)
                 and mode == "shop"
@@ -1541,7 +1538,7 @@ while running:
                     buffm.apply_instant_effects(globals())
                     buffm_intermission_timer.reset()
                     inserted_coin.play()
-            #ФОНЫ
+            #пїЅпїЅпїЅпїЅ
             if (
                 button_to_backgrounds_shop.rect.collidepoint(event.pos)
                 and mode == "game"
@@ -1583,24 +1580,6 @@ while running:
             ):
                 volume_changing_sound.play()
                 kiroCharacter.activate()
-            
-            if (
-                event.key == pygame.K_e
-                and mode == "minigame"
-                and namaPlayer.rect.colliderect(ronaldCharacter.rect)
-                and not ronaldCharacter.isTriggered
-            ):
-                volume_changing_sound.play()
-                ronaldCharacter.activate()
-            
-            if (
-                event.key == pygame.K_e
-                and mode == "minigame"
-                and namaPlayer.rect.colliderect(oshuCharacter.rect)
-                and not oshuCharacter.isTriggered
-            ):
-                volume_changing_sound.play()
-                oshuCharacter.activate()
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT] or keys[pygame.K_a] and mode == "minigame":
@@ -1667,7 +1646,7 @@ while running:
 
         button_to_backgrounds_shop.draw(screen)
         screen.blit(
-            font_30.render("Фоны", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅ", True, BLACK),
             (button_to_backgrounds_shop.x + 52.5, button_to_backgrounds_shop.y + 12)
         )
 
@@ -1681,9 +1660,9 @@ while running:
         screen.blit(buff_machine_image, (BUFF_MACHINE_X, BUFF_MACHINE_Y))
 
         if buffm_intermission_timer.done():
-            machine_timer_text = "Таймер: готово"
+            machine_timer_text = "пїЅпїЅпїЅпїЅпїЅпїЅ: пїЅпїЅпїЅпїЅпїЅпїЅ"
         else:
-            machine_timer_text = f"Таймер: {buffm_intermission_timer.time_format()}"
+            machine_timer_text = f"пїЅпїЅпїЅпїЅпїЅпїЅ: {buffm_intermission_timer.time_format()}"
         screen.blit(
             font_25.render(machine_timer_text, True, WHITE),
             (button_machine.x + 15, BUFF_MACHINE_Y + buff_machine_image.get_height() + 8)
@@ -1696,8 +1675,8 @@ while running:
         )
 
         effect_color = WHITE
-        effect_title = "Эффект:"
-        effect_text = buffm.last_result_text if buffm.last_result_text else "Пока нет эффекта"
+        effect_title = "пїЅпїЅпїЅпїЅпїЅпїЅ:"
+        effect_text = buffm.last_result_text if buffm.last_result_text else "пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ"
 
         current_effect_kind = buffm.last_effect_kind
         if buffm.active_effect_id is not None:
@@ -1705,16 +1684,16 @@ while running:
 
         if current_effect_kind == "buff":
             effect_color = (140, 255, 140)
-            effect_title = "Бафф:"
+            effect_title = "пїЅпїЅпїЅпїЅ:"
         elif current_effect_kind == "debuff":
             effect_color = (255, 140, 140)
-            effect_title = "Дебафф:"
+            effect_title = "пїЅпїЅпїЅпїЅпїЅпїЅ:"
 
         effect_y = button_machine.y + 70
         screen.blit(font_25.render(effect_title, True, effect_color), (BUFF_MACHINE_TEXT_X, effect_y))
         if show_buff_effect_end_notice:
             screen.blit(
-                font_20.render("Эффект кончился", True, (255, 245, 140)),
+                font_20.render("пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ", True, (255, 245, 140)),
                 (BUFF_MACHINE_TEXT_X + 112, effect_y + 4)
             )
         effect_y += 24
@@ -1731,17 +1710,17 @@ while running:
 
         if buffm.active_effect_id is not None and buffm.active_effect_timer is not None:
             screen.blit(
-                font_20.render(f"До конца: {buffm.active_effect_timer.time_format()}", True, effect_color),
+                font_20.render(f"пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: {buffm.active_effect_timer.time_format()}", True, effect_color),
                 (BUFF_MACHINE_TEXT_X, effect_y + 8)
             )
 
         button_to_minigame_from_game.draw(screen)
         screen.blit(
-            font_30.render("Полка", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             (850, 730)
         ) 
         screen.blit(
-            font_25.render("Зелёное поле", True, BLACK),
+            font_25.render("пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ", True, BLACK),
             (button_to_minigame_from_game.x + 16, button_to_minigame_from_game.y + 15)
         )
         if total_clicks < 1000 and not isReached1000clicks:
@@ -1752,22 +1731,22 @@ while running:
         
         if boost >= 50:
             screen.blit(
-            font_30.render("Буст: Макс.", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅ: пїЅпїЅпїЅпїЅ.", True, BLACK),
             (55, 650)
         )
         else:
             screen.blit(
-                font_30.render(f"Буст: x{boost + 1}", True, BLACK),
+                font_30.render(f"пїЅпїЅпїЅпїЅ: x{boost + 1}", True, BLACK),
                 (55, 650)
             )
 
         screen.blit(
-            font_25.render(f"Цена: {int(required_clicks_for_boost)}", True, BLACK),
+            font_25.render(f"пїЅпїЅпїЅпїЅ: {int(required_clicks_for_boost)}", True, BLACK),
             (56, 676)
         )
         button_to_menu_from_game.draw(screen)
         screen.blit(
-            font_30.render("Меню", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅ", True, BLACK),
             (button_to_menu_from_game.x + 52.5, button_to_menu_from_game.y + 10.5),
         )
         tama_on_screen.update()
@@ -1794,7 +1773,7 @@ while running:
                 show_boost = False
         if show_intro_game_text:
             screen.blit(
-                font_25.render("Namatama меняется каждый клик", True, WHITE),
+                font_25.render("Namatama пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ", True, WHITE),
                 (300, 700),
             )
         if total_clicks >= 1000 and not cfa_1000_clicks.unlocked:
@@ -1823,20 +1802,20 @@ while running:
         button_to_game_from_menu.draw(screen)
         button_to_settings_from_menu.draw(screen)
         screen.blit(
-            font_30.render("Настройки", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             (button_to_settings_from_menu.x + 20, button_to_settings_from_menu.y + 10),
         )
         screen.blit( 
-            font_25.render("Достижения", True, BLACK),
+            font_25.render("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             (button_to_game_from_menu.x + 18, button_to_game_from_menu.y + 85.5),
         )
         screen.blit(
-            font_30.render("Играть", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             (button_to_game_from_menu.x + 50, button_to_game_from_menu.y + 10.5),
         )
         button_to_credits_from_menu.draw(screen)
         screen.blit(
-            font_25.render("Информация", True, BLACK),
+            font_25.render("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             (button_to_credits_from_menu.x + 20, button_to_credits_from_menu.y + 14),
         )
     if mode == "achievements":
@@ -1850,7 +1829,7 @@ while running:
         cfa_1000000_clicks.draw(screen)
         draw_button_text(
             screen,
-            "Нажмите чтобы вернуться в Меню",
+            "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ",
             font_25,
             BLACK,
             achievements_back_button,
@@ -1861,7 +1840,7 @@ while running:
         credits_back_button.draw(screen)
         draw_button_text(
             screen,
-            "Нажмите чтобы вернуться в Меню",
+            "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ",
             font_25,
             BLACK,
             credits_back_button,
@@ -1874,7 +1853,7 @@ while running:
         screen.blit(volume_icon, (400 + 20, 218))
         draw_button_text(
             screen,
-            "Нажмите чтобы вернуться в Меню",
+            "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ",
             font_25,
             BLACK,
             settings_back_button,
@@ -1913,7 +1892,7 @@ while running:
         screen.blit(field_bg, (0, 0))
         button_back_from_minigame.draw(screen)
         screen.blit(
-            font_30.render("Назад", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             ((button_back_from_minigame.x + 52.5, button_back_from_minigame.y + 10.5),)
         )
         namaPlayer.draw(screen)
@@ -1931,28 +1910,6 @@ while running:
             kiroCharacter.isTriggered = False
 
         kiroCharacter.drawDialogueWindow(screen)
-
-        ronaldCharacter.draw(screen)
-
-        if (
-            namaPlayer.rect.colliderect(ronaldCharacter.rect)
-        ):
-            ronaldCharacter.draw_button(screen)
-        else:
-            ronaldCharacter.isTriggered = False
-
-        ronaldCharacter.drawDialogueWindow(screen)
-
-        oshuCharacter.draw(screen)
-
-        if (
-            namaPlayer.rect.colliderect(oshuCharacter.rect)
-        ):
-            oshuCharacter.draw_button(screen)
-        else:
-            oshuCharacter.isTriggered = False
-
-        oshuCharacter.drawDialogueWindow(screen)
 
         if coin_spawn_timer.done() and len(coins) < MAX_COINS:
             if random.random() < 0.2:
@@ -2003,11 +1960,11 @@ while running:
             minigun.draw(screen)
 
         screen.blit(
-            font_30.render("В магазин", True, BLACK),
+            font_30.render("пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             ((button_to_shop_from_shelf.x + 20.5, button_to_shop_from_shelf.y + 10.5),)
         )
         screen.blit(
-            font_30.render("Назад", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             ((button_back_from_shelf.x + 52.5, button_back_from_shelf.y + 10.5),)
         )
         
@@ -2015,13 +1972,13 @@ while running:
         screen.blit(shop_bg, (0, 0))
         button_back_from_shop.draw(screen)
         screen.blit(
-            font_30.render("Назад", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             (button_back_from_shop.x + 52.5, button_back_from_shop.y + 10.5)
         )
         if isReached1000clicks:
             button_exchanging.draw(screen)
             screen.blit(
-                font_30.render("Обменник", True, BLACK),
+                font_30.render("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ", True, BLACK),
                 (button_exchanging.x + 25, button_exchanging.y + 10.5)
             )
         else:
@@ -2037,26 +1994,26 @@ while running:
         screen.blit(teddy_bear_preview, (0, 0))
         back_button_from_preview.draw(screen)
         screen.blit(
-            font_30.render("Назад", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             ((back_button_from_preview.x + 52.5, back_button_from_preview.y + 10.5),)
         )
         if not teddy_bear.isBought:
             button_buy_bear.draw(screen) 
             screen.blit(
-                font_30.render("Купить", True, BLACK),
+                font_30.render("пїЅпїЅпїЅпїЅпїЅпїЅ", True, BLACK),
                 ((button_buy_bear.x + 45, button_buy_bear.y + 10.5),)
             )
     if mode == "beluash_preview":
         screen.blit(beluash_preview, (0, 0))
         back_button_from_preview.draw(screen)
         screen.blit(
-            font_30.render("Назад", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             ((back_button_from_preview.x + 52.5, back_button_from_preview.y + 10.5),)
         )
         if not beluash.isBought:
             button_buy_beluash.draw(screen)
             screen.blit(
-                font_30.render("Купить", True, BLACK),
+                font_30.render("пїЅпїЅпїЅпїЅпїЅпїЅ", True, BLACK),
                 ((button_buy_beluash.x + 45, button_buy_beluash.y + 10.5),)
             )
         
@@ -2064,13 +2021,13 @@ while running:
         screen.blit(contestant_preview, (0, 0))
         back_button_from_preview.draw(screen)
         screen.blit(
-            font_30.render("Назад", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             ((back_button_from_preview.x + 52.5, back_button_from_preview.y + 10.5),)
         )
         if not contestant.isBought:
             button_buy_contestant.draw(screen)
             screen.blit(
-                font_30.render("Купить", True, BLACK),
+                font_30.render("пїЅпїЅпїЅпїЅпїЅпїЅ", True, BLACK),
                 ((button_buy_contestant.x + 45, button_buy_contestant.y + 10.5),)
             )
 
@@ -2078,7 +2035,7 @@ while running:
         screen.blit(energy_drink_preview, (0, 0))
         back_button_from_preview.draw(screen)
         screen.blit(
-            font_30.render("Назад", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             ((back_button_from_preview.x + 52.5, back_button_from_preview.y + 10.5),)
         )
     
@@ -2086,7 +2043,7 @@ while running:
         screen.blit(tiger_fruit_preview, (0, 0))
         back_button_from_preview.draw(screen)
         screen.blit(
-            font_30.render("Назад", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             ((back_button_from_preview.x + 52.5, back_button_from_preview.y + 10.5),)
         )
     
@@ -2094,7 +2051,7 @@ while running:
         screen.blit(minigun_preview, (0, 0))
         back_button_from_preview.draw(screen)
         screen.blit(
-            font_30.render("Назад", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             ((back_button_from_preview.x + 52.5, back_button_from_preview.y + 10.5),)
         )
     
@@ -2103,11 +2060,11 @@ while running:
         button_back_from_battle_pass.draw(screen)
         button_to_sponsors_from_NamaPass.draw(screen)
         screen.blit(
-            font_30.render("Спонсоры", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             ((button_to_sponsors_from_NamaPass.x + 30, button_to_sponsors_from_NamaPass.y + 10.5),)
         )
         screen.blit(
-            font_30.render("Назад", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             ((button_back_from_battle_pass.x + 52.5, button_back_from_battle_pass.y + 10.5),)
         )
 
@@ -2190,7 +2147,7 @@ while running:
         screen.fill(GREY)
         button_back_from_sponsors_choice.draw(screen)
         screen.blit(
-            font_30.render("Назад", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             ((button_back_from_sponsors_choice.x + 52.5, button_back_from_sponsors_choice.y + 10.5),)
         )
 
@@ -2205,7 +2162,7 @@ while running:
         button_back_from_sponsors_quotes.draw(screen)
         screen.blit(trentila_quote, (50, 65))
         screen.blit(
-            font_30.render("Назад", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             ((button_back_from_sponsors_quotes.x + 52.5, button_back_from_sponsors_quotes.y + 10.5),)
         )
     
@@ -2214,7 +2171,7 @@ while running:
         button_back_from_sponsors_quotes.draw(screen)
         screen.blit(ospuze_quote, (50, 65))
         screen.blit(
-            font_30.render("Назад", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             ((button_back_from_sponsors_quotes.x + 52.5, button_back_from_sponsors_quotes.y + 10.5),)
         )
     
@@ -2223,7 +2180,7 @@ while running:
         button_back_from_sponsors_quotes.draw(screen)
         screen.blit(alfa_acta_quote, (50, 65))
         screen.blit(
-            font_30.render("Назад", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             ((button_back_from_sponsors_quotes.x + 52.5, button_back_from_sponsors_quotes.y + 10.5),)
         )
     
@@ -2232,14 +2189,14 @@ while running:
         button_back_from_sponsors_quotes.draw(screen)
         screen.blit(vaiiya_quote, (50, 65))
         screen.blit(
-            font_30.render("Назад", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             ((button_back_from_sponsors_quotes.x + 52.5, button_back_from_sponsors_quotes.y + 10.5),)
         )
     if not isTutorialWatched and mode == "tutorial_gfield":
         screen.blit(tutorial_gfield, (0, 0))
         button_got_it.draw(screen)
         screen.blit(
-            font_30.render("Понятно", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             ((button_got_it.x + 42.5, button_got_it.y + 10.5),)
         )
 
@@ -2250,23 +2207,23 @@ while running:
         button_exchange_to_clicks.draw(screen)
 
         screen.blit(
-            font_30.render("Назад", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             (button_exchanging_back_to_shop.x + 52.5, button_exchanging_back_to_shop.y + 10.5)
         )
         screen.blit(
-            font_40.render("Клики > NamaCoins", True, BLACK),
+            font_40.render("пїЅпїЅпїЅпїЅпїЅ > NamaCoins", True, BLACK),
             (320, 230)
         )
         screen.blit(
-            font_40.render("NamaCoins > Клики", True, BLACK),
+            font_40.render("NamaCoins > пїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             (320, 400)
         )
         screen.blit(
-            font_30.render("Обменять", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             (button_exchange_to_coins.x + 25, button_exchange_to_coins.y + 10.5)
         )
         screen.blit(
-            font_30.render("Обменять", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             (button_exchange_to_clicks.x + 25, button_exchange_to_clicks.y + 10.5)
         )
 
@@ -2274,45 +2231,45 @@ while running:
         screen.fill(GREY)
         button_back_from_backgrounds_shop.draw(screen)
         screen.blit(
-            font_30.render("Назад", True, BLACK),
+            font_30.render("пїЅпїЅпїЅпїЅпїЅ", True, BLACK),
             (button_back_from_backgrounds_shop.x + 52.5, button_back_from_backgrounds_shop.y + 10.5)
         )
         seoul_bg.draw_button(screen)
         if seoul_bg.isBought:
-            status_text_seoul = "Надеть" if not seoul_bg.equipped else "Надет"
+            status_text_seoul = "пїЅпїЅпїЅпїЅпїЅпїЅ" if not seoul_bg.equipped else "пїЅпїЅпїЅпїЅпїЅ"
             screen.blit(
-                font_25.render(f"Куплено. {status_text_seoul}", True, BLACK),
+                font_25.render(f"пїЅпїЅпїЅпїЅпїЅпїЅпїЅ. {status_text_seoul}", True, BLACK),
                 (seoul_bg.button_rect.x, seoul_bg.button_rect.bottom + 10)
             )
         else:
             screen.blit(
-                font_25.render(f"Цена: {seoul_bg.price} NamaCoins", True, BLACK),
+                font_25.render(f"пїЅпїЅпїЅпїЅ: {seoul_bg.price} NamaCoins", True, BLACK),
                 (seoul_bg.button_rect.x, seoul_bg.button_rect.bottom + 10)
             )
 
         kyoto_bg.draw_button(screen)
         if kyoto_bg.isBought:
-            status_text_kyoto = "Надеть" if not kyoto_bg.equipped else "Надет"
+            status_text_kyoto = "пїЅпїЅпїЅпїЅпїЅпїЅ" if not kyoto_bg.equipped else "пїЅпїЅпїЅпїЅпїЅ"
             screen.blit(
-                font_25.render(f"Куплено. {status_text_kyoto}", True, BLACK),
+                font_25.render(f"пїЅпїЅпїЅпїЅпїЅпїЅпїЅ. {status_text_kyoto}", True, BLACK),
                 (kyoto_bg.button_rect.x, kyoto_bg.button_rect.bottom + 10)
             )
         else:
             screen.blit(
-                font_25.render(f"Цена: {kyoto_bg.price} NamaCoins", True, BLACK),
+                font_25.render(f"пїЅпїЅпїЅпїЅ: {kyoto_bg.price} NamaCoins", True, BLACK),
                 (kyoto_bg.button_rect.x, kyoto_bg.button_rect.bottom + 10)
             )
 
         bernal_bg.draw_button(screen)
         if bernal_bg.isBought:
-            status_text_bernal = "Надеть" if not bernal_bg.equipped else "Надет"
+            status_text_bernal = "пїЅпїЅпїЅпїЅпїЅпїЅ" if not bernal_bg.equipped else "пїЅпїЅпїЅпїЅпїЅ"
             screen.blit(
-                font_25.render(f"Куплено. {status_text_bernal}", True, BLACK),
+                font_25.render(f"пїЅпїЅпїЅпїЅпїЅпїЅпїЅ. {status_text_bernal}", True, BLACK),
                 (bernal_bg.button_rect.x, bernal_bg.button_rect.bottom + 10)
             )
         else:
             screen.blit(
-                font_25.render(f"Цена: {bernal_bg.price} NamaCoins", True, BLACK),
+                font_25.render(f"пїЅпїЅпїЅпїЅ: {bernal_bg.price} NamaCoins", True, BLACK),
                 (bernal_bg.button_rect.x, bernal_bg.button_rect.bottom + 10)
             )
 
@@ -2320,7 +2277,7 @@ while running:
         pop.update()
         pop.draw(screen)
 
-    # Загрузка
+    # пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     if isLoading:
         screen.fill(GREY)
         if cooldown_timer.done():

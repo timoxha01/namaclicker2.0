@@ -3,22 +3,6 @@ import math
 import pygame
 import os
 import datasave
-from classes import (
-    Button, 
-    Timer,
-    set_load_image,
-    set_load_sound,
-    HoverImage,
-    SongsPopouts,
-    Coin,
-    BoostCoin,
-    Namas,
-    Achievements,
-    ShopItems,
-    Background,
-    NamaPassItemsCollect
-
-)
 
 pygame.init()
 pygame.mixer.init()
@@ -93,10 +77,6 @@ def load_sound(path):
     sound = pygame.mixer.Sound(path)
     _sound_cache[path] = sound
     return sound
-
-
-set_load_image(load_image)
-set_load_sound(load_sound)
 
 
 draw_loading_screen("Загрузка ассетов...")
@@ -261,6 +241,39 @@ class NamaPassbanner:
             rect_next = img_next.get_rect(center=self.base_rect.center)
             screen.blit(img_next, rect_next)
 
+class Namas:
+    def __init__(self, name, path, chance):
+        self.name = name
+        self.base_pos = (W // 2, H // 2)
+        self.pos = self.base_pos
+        self.original_image = load_image(path, alpha=True)
+        self.image = self.original_image
+        self.rect = self.image.get_rect(center=self.pos)
+        self.chance = chance
+        self.sway_time = 0.0
+        self.sway_duration = 0.15
+        self.sway_amplitude = 4
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+    def add_clicks(self, amount, boost):
+        self.clicks += amount * boost
+
+    def update(self):
+        if self.sway_time > 0.0:
+            self.sway_time -= 1.0 / FPS
+            t = max(0.0, self.sway_time / self.sway_duration)
+            offset = math.sin((1.0 - t) * math.pi * 4) * self.sway_amplitude * t
+            self.pos = (self.base_pos[0] + offset, self.base_pos[1])
+        else:
+            self.pos = self.base_pos
+
+        self.rect = self.image.get_rect(center=self.pos)
+
+    def pulse(self):
+        self.sway_time = self.sway_duration
+
 class BuffMachine:
     EFFECTS = {
         "buff1": ("x1.1 кликов каждые 10 секунд на протяжении минуты!", "buff", 60000, 10000, 1.1, "clicks"),
@@ -353,6 +366,42 @@ class BuffMachine:
             return max(1, mult)
         return 1
 
+class Background:
+    def __init__(self, bg_path, price, buy_button_path, x_button, y_button) -> None:
+        self.bg_image = load_image(bg_path, alpha=False)
+        self.price = price
+        self.isBought = False
+        self.equipped = False
+        self.x_button = x_button
+        self.y_button = y_button
+        self.original_button_image = load_image(buy_button_path, alpha=True)
+        self.buy_button_image = self.original_button_image
+        self.button_base_rect = self.original_button_image.get_rect(topleft=(x_button, y_button))
+        self.button_rect = self.button_base_rect.copy()
+        self.scale = 1.0
+        self.target_scale = 1.0
+        self.scale_speed = 0.15
+
+    def draw_button(self, screen):
+        mouse_pos = pygame.mouse.get_pos()
+        if self.button_base_rect.collidepoint(mouse_pos):
+            self.target_scale = 0.92
+        else:
+            self.target_scale = 1.0
+
+        if self.scale != self.target_scale:
+            self.scale += (self.target_scale - self.scale) * self.scale_speed
+            if abs(self.scale - self.target_scale) < 0.01:
+                self.scale = self.target_scale
+            size = (
+                int(self.original_button_image.get_width() * self.scale),
+                int(self.original_button_image.get_height() * self.scale),
+            )
+            self.buy_button_image = pygame.transform.smoothscale(self.original_button_image, size)
+            self.button_rect = self.buy_button_image.get_rect(center=self.button_base_rect.center)
+
+        screen.blit(self.buy_button_image, self.button_rect)
+
     def buy(self):
         global NamaCoins
         if NamaCoins >= self.price:
@@ -383,6 +432,47 @@ class NamaPlayer():
 
 namaPlayer = NamaPlayer()
 
+class ShopItems():
+    def __init__(self, image_path, price, x, y) -> None:
+        self.price = price
+        self.image = load_image(image_path, alpha=True)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+        self.isBought = False
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+    
+    def buy(self): 
+        global NamaCoins        
+        if NamaCoins >= self.price:
+            self.isBought = True
+            NamaCoins -= self.price
+            purchase_success.play()
+        else:
+            purchase_failed.play()
+
+class Timer:
+    def __init__(self, duration):
+        self.duration = duration
+        self.start = pygame.time.get_ticks()
+
+    def done(self):
+        return pygame.time.get_ticks() - self.start >= self.duration
+
+    def reset(self):
+        self.start = pygame.time.get_ticks()
+    
+    def time_left(self):
+        return max(0, self.duration - (pygame.time.get_ticks() - self.start))
+
+    def time_format(self):
+        total_sec = self.time_left() // 1000
+        minutes = total_sec // 60
+        seconds = total_sec % 60
+        return f"{minutes:02d}:{seconds:02d}"
+
+
 def draw_wrapped_text(surface, text, font, color, x, y, max_width, line_height):
     words = text.split()
     if not words:
@@ -404,6 +494,154 @@ def draw_wrapped_text(surface, text, font, color, x, y, max_width, line_height):
         surface.blit(font.render(row, True, color), (x, y))
         y += line_height
     return y
+
+class NamaPassItemsCollect:
+    BUTTON_IMAGE = None
+    COLLECTED_IMAGE = None
+
+    def __init__(self, button_x, button_y):
+        self.button_x = button_x
+        self.button_y = button_y
+        if NamaPassItemsCollect.BUTTON_IMAGE is None:
+            NamaPassItemsCollect.BUTTON_IMAGE = load_image("assets/images/UI/collect_button.png", alpha=True)
+        if NamaPassItemsCollect.COLLECTED_IMAGE is None:
+            NamaPassItemsCollect.COLLECTED_IMAGE = load_image("assets/images/UI/namapass_collected.png", alpha=True)
+        self.button_image = NamaPassItemsCollect.BUTTON_IMAGE
+        self.collected_item = NamaPassItemsCollect.COLLECTED_IMAGE
+        self.rect = self.button_image.get_rect(topleft=(button_x, button_y))
+        self.isCountdownDone = False
+        self.isCollected = False
+    
+    def draw(self, screen):
+        screen.blit(self.button_image, self.rect)
+    
+    def buy(self):
+        global NamaCoins, coins_collecting, purchase_failed
+        if (
+            self.rect.collidepoint(event.pos)
+            and mode == "NamaPass"
+        ):
+            if not self.isCollected and self.isCountdownDone:
+                self.isCollected = True
+                coins_collecting.play()
+
+
+class SongsPopouts:
+    def __init__(self, image_path, x=15, y=680):
+        self.base_image = load_image(image_path, alpha=True)
+        self.x = x
+        self.y = y
+
+        self.scale = 0.0
+        self.target_scale = 1.0
+        self.speed = 0.15
+
+        self.visible = False
+        self.hiding = False
+        self.timer = Timer(4000)
+
+    def show(self):
+        self.scale = 0.0
+        self.visible = True
+        self.hiding = False
+        self.timer.reset()
+
+    def update(self):
+        if not self.visible:
+            return
+
+        if not self.hiding and self.scale < self.target_scale:
+            self.scale += self.speed
+            if self.scale >= self.target_scale:
+                self.scale = self.target_scale
+                self.timer.reset()
+            return
+
+        if not self.hiding and self.timer.done():
+            self.hiding = True
+
+        if self.hiding:
+            self.scale -= self.speed
+            if self.scale <= 0:
+                self.scale = 0
+                self.visible = False
+                self.hiding = False
+
+    def draw(self, screen):
+        if not self.visible or self.scale <= 0:
+            return
+
+        w = int(self.base_image.get_width() * self.scale)
+        h = int(self.base_image.get_height() * self.scale)
+
+        img = pygame.transform.smoothscale(self.base_image, (w, h))
+        screen.blit(img, (self.x, self.y))
+
+class Button:
+    BASE_IMAGE = None
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        if Button.BASE_IMAGE is None:
+            Button.BASE_IMAGE = load_image("assets/images/UI/button.png", alpha=True)
+        self.original_image = Button.BASE_IMAGE
+        self.image = self.original_image
+        self.base_rect = self.original_image.get_rect(topleft=(self.x, self.y))
+        self.rect = self.base_rect.copy()
+        self.scale = 1.0
+        self.target_scale = 1.0
+        self.scale_speed = 0.15
+
+    def draw(self, screen):
+        mouse_pos = pygame.mouse.get_pos()
+        if self.base_rect.collidepoint(mouse_pos):
+            self.target_scale = 0.92
+        else:
+            self.target_scale = 1.0
+
+        if self.scale != self.target_scale:
+            self.scale += (self.target_scale - self.scale) * self.scale_speed
+            if abs(self.scale - self.target_scale) < 0.01:
+                self.scale = self.target_scale
+            size = (
+                int(self.original_image.get_width() * self.scale),
+                int(self.original_image.get_height() * self.scale),
+            )
+            self.image = pygame.transform.smoothscale(self.original_image, size)
+            self.rect = self.image.get_rect(center=self.base_rect.center)
+
+        screen.blit(self.image, self.rect)
+
+class HoverImage:
+    def __init__(self, image, center):
+        self.original_image = image
+        self.image = self.original_image
+        self.base_rect = self.original_image.get_rect(center=center)
+        self.rect = self.base_rect.copy()
+        self.scale = 1.0
+        self.target_scale = 1.0
+        self.scale_speed = 0.15
+
+    def draw(self, screen):
+        mouse_pos = pygame.mouse.get_pos()
+        if self.base_rect.collidepoint(mouse_pos):
+            self.target_scale = 0.92
+        else:
+            self.target_scale = 1.0
+
+        if self.scale != self.target_scale:
+            self.scale += (self.target_scale - self.scale) * self.scale_speed
+            if abs(self.scale - self.target_scale) < 0.01:
+                self.scale = self.target_scale
+            size = (
+                int(self.original_image.get_width() * self.scale),
+                int(self.original_image.get_height() * self.scale),
+            )
+            self.image = pygame.transform.smoothscale(self.original_image, size)
+            self.rect = self.image.get_rect(center=self.base_rect.center)
+
+        screen.blit(self.image, self.rect)
 
 def ShowNofitication(sc):
     global notif_visible, notif_timer, exc_mark
@@ -459,6 +697,107 @@ vaiiya_button = HoverImage(
     vaiiya_button_img,
     (511 + (186 // 2), 430)
 )
+
+class Achievements:
+    POP_OUT_LABEL = None
+    HIDDEN_IMAGE = None
+    ACHIEVEMENT_SOUND = None
+
+    def __init__(self, pop_out_text, x, y):
+        self.x_pop_out = 500 
+        self.target_y = 30
+        self.speed = 7
+        self.pop_out_text = pop_out_text
+        self.sound_played = False
+        if Achievements.POP_OUT_LABEL is None:
+            Achievements.POP_OUT_LABEL = load_image("assets/images/UI/pop_out_label.png", alpha=True)
+        if Achievements.HIDDEN_IMAGE is None:
+            Achievements.HIDDEN_IMAGE = load_image("assets/images/UI/hidden_achi.png", alpha=True)
+        if Achievements.ACHIEVEMENT_SOUND is None:
+            Achievements.ACHIEVEMENT_SOUND = load_sound("assets/sounds/sfxes/nofitication_sound.mp3")
+        self.pop_out_label = Achievements.POP_OUT_LABEL
+        self.pop_rect = self.pop_out_label.get_rect(
+            midtop=(W // 2, - self.pop_out_label.get_height())
+        )
+        self.y_pop_out = self.pop_rect.y
+        self.achievement_sound = Achievements.ACHIEVEMENT_SOUND
+        self.image = Achievements.HIDDEN_IMAGE
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.unlocked = False
+        self.show_popup = False
+        self.timer = Timer(2000)
+        self.hiding = False
+
+    def draw(self, screen):
+        if not self.unlocked:
+            screen.blit(self.image, self.rect)
+
+    def pop_out(self, screen):
+        if not self.show_popup:
+            return
+        if not self.sound_played:
+            self.achievement_sound.play()
+            self.sound_played = True
+        if self.pop_rect.y < self.target_y and not self.timer.done():
+            self.pop_rect.y += self.speed
+            if self.pop_rect.y >= self.target_y:
+                self.pop_rect.y = self.target_y
+                self.timer.reset()
+
+        if self.timer.done():
+            self.pop_rect.y -= self.speed
+            if self.pop_rect.y <= -self.pop_rect.height:
+                self.reset_popup()
+                self.show_popup = False
+                return
+    
+        screen.blit(self.pop_out_label, self.pop_rect)
+        screen.blit(
+            font_40.render("Новое достижение!", True, BLACK),
+            (self.pop_rect.x + 40, self.pop_rect.y + 25),
+        )
+        screen.blit(
+            font_30.render(self.pop_out_text, True, BLACK),
+            (self.pop_rect.x + ((font_30.size(self.pop_out_text)[0] // 4) - 30),
+             self.pop_rect.y + 70),
+        )
+    def reset_popup(self):
+        self.y_pop_out = -137
+        self.sound_played = False 
+        self.timer.reset()
+
+class Coin:
+    def __init__(self):
+        self.image = pickable_namacoin
+        self.rect = self.image.get_rect(
+            center=(
+                random.randint(50, W - 50),
+                random.randint(50, H - 50),
+            )
+        )
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+class BoostCoin(Coin):
+    BOOST_COIN_IMAGE = None
+
+    def __init__(self):
+        super().__init__()
+        if BoostCoin.BOOST_COIN_IMAGE is None:
+            BoostCoin.BOOST_COIN_IMAGE = load_image("assets/images/UI/NamaCoin_boost.png", alpha=True)
+        self.image = BoostCoin.BOOST_COIN_IMAGE
+        self.rect = self.image.get_rect(
+            center=(
+                random.randint(50, W - 50),
+                random.randint(50, H - 50),
+            )
+        )
+
+class Course:
+    def __init__(self) -> None:
+        self.course_clicks = float(EXCHANGE_CLICKS_PER_NAMACOIN)
+        self.course_coins = round(1.0 / EXCHANGE_CLICKS_PER_NAMACOIN, 6)
 
 def add_clicks():
     global \
@@ -545,12 +884,12 @@ seoul_bg = Background("assets/images/UI/seoul_bg.png", 100, "assets/images/UI/se
 kyoto_bg = Background("assets/images/UI/kyoto_bg.png", 250, "assets/images/UI/kyoto_bg_button.png", 408, 351)
 bernal_bg = Background("assets/images/UI/bernal_bg.png", 400, "assets/images/UI/kyoto_bg_button.png", 408, 456)
 
-cfa_collect_all_tamas = Achievements("Собрать все NamaTama", 64, 80, W, font_40, font_30, BLACK)
-cfa_sanic_popout = Achievements("Встретить Sanic", 372, 80, W, font_40, font_30, BLACK)
-cfa_IT = Achievements("Встретить ...", 679, 80, W, font_40, font_30, BLACK)
-cfa_1000_clicks = Achievements("Набрать 1000 кликов", 65, 382, W, font_40, font_30, BLACK)
-cfa_10000_clicks = Achievements("Набрать 10000 кликов", 372, 382, W, font_40, font_30, BLACK)
-cfa_1000000_clicks = Achievements("Набрать 1000000 кликов", 679, 382, W, font_40, font_30, BLACK)
+cfa_collect_all_tamas = Achievements("Собрать все NamaTama", 64, 80)
+cfa_sanic_popout = Achievements("Встретить Sanic", 372, 80)
+cfa_IT = Achievements("Встретить ...", 679, 80)
+cfa_1000_clicks = Achievements("Набрать 1000 кликов", 65, 382)
+cfa_10000_clicks = Achievements("Набрать 10000 кликов", 372, 382)
+cfa_1000000_clicks = Achievements("Набрать 1000000 кликов", 679, 382)
 
 teddy_bear = ShopItems("assets/images/shop_items/teddy_bear.png", 250, 98, 173)
 beluash = ShopItems("assets/images/shop_items/beluash.png", 500, 410, 173)
@@ -571,22 +910,22 @@ song_popouts = {
 }
 
 tamas = [
-    Namas("classic", "assets/images/tamas/classic.png", 1.0, (W, H), FPS),
-    Namas("like", "assets/images/tamas/like.png", 0.7, (W, H), FPS),
-    Namas("search", "assets/images/tamas/search.png", 0.5, (W, H), FPS),
-    Namas("tea", "assets/images/tamas/tea.png", 0.3, (W, H), FPS),
-    Namas("bob", "assets/images/tamas/bob.png", 0.2, (W, H), FPS),
-    Namas("builder", "assets/images/tamas/builder.png", 0.1, (W, H), FPS),
-    Namas("birthday", "assets/images/tamas/birthday.png", 0.1, (W, H), FPS),
-    Namas("stone", "assets/images/tamas/stone.png", 0.1, (W, H), FPS),
-    Namas("gun", "assets/images/tamas/gun.png", 0.05, (W, H), FPS),
-    Namas("galaxy", "assets/images/tamas/galaxy.png", 0.05, (W, H), FPS),
-    Namas("vibe", "assets/images/tamas/vibe.png", 0.03, (W, H), FPS),
-    Namas("evil", "assets/images/tamas/evil.png", 0.01, (W, H), FPS),
-    Namas("demon", "assets/images/tamas/demon.png", 0.01, (W, H), FPS),
-    Namas("boykisser", "assets/images/tamas/boykisser.png", 0.01, (W, H), FPS),
-    Namas("sanic", "assets/images/tamas/sanic_ee.png", 0.001, (W, H), FPS),
-    Namas("glitch", "assets/images/tamas/glitch_ee.png", 0.001, (W, H), FPS)
+    Namas("classic", "assets/images/tamas/classic.png", 1.0),
+    Namas("like", "assets/images/tamas/like.png", 0.7),
+    Namas("search", "assets/images/tamas/search.png", 0.5),
+    Namas("tea", "assets/images/tamas/tea.png", 0.3),
+    Namas("bob", "assets/images/tamas/bob.png", 0.2),
+    Namas("builder", "assets/images/tamas/builder.png", 0.1),
+    Namas("birthday", "assets/images/tamas/birthday.png", 0.1),
+    Namas("stone", "assets/images/tamas/stone.png", 0.1),
+    Namas("gun", "assets/images/tamas/gun.png", 0.05),
+    Namas("galaxy", "assets/images/tamas/galaxy.png", 0.05),
+    Namas("vibe", "assets/images/tamas/vibe.png", 0.03),
+    Namas("evil", "assets/images/tamas/evil.png", 0.01),
+    Namas("demon", "assets/images/tamas/demon.png", 0.01),
+    Namas("boykisser", "assets/images/tamas/boykisser.png", 0.01),
+    Namas("sanic", "assets/images/tamas/sanic_ee.png", 0.001),
+    Namas("glitch", "assets/images/tamas/glitch_ee.png", 0.001)
 ]
 
 banner = NamaPassbanner()
@@ -661,6 +1000,8 @@ buffm = BuffMachine()
 buffm_intermission_timer = Timer(120000)
 show_buff_effect_end_notice = False
 buff_effect_end_notice_timer = Timer(2000)
+
+course = Course()
 
 coins = []
 MAX_COINS = 5
@@ -1425,9 +1766,9 @@ while running:
 
         if coin_spawn_timer.done() and len(coins) < MAX_COINS:
             if random.random() < 0.2:
-                    coins.append(BoostCoin((W, H)))
+                    coins.append(BoostCoin())
             else:
-                coins.append(Coin(pickable_namacoin, (W, H)))
+                coins.append(Coin())
             coin_spawn_timer.reset()
 
         for coin in coins[:]:

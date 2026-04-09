@@ -872,17 +872,17 @@ namapass_ospuze_reward = NamaPassItemsCollect(434, 194)
 namapass_minigun_reward = NamaPassItemsCollect(142, 193)
 
 BUFF_MACHINE_X = W - buff_machine_image.get_width() - 12
-BUFF_MACHINE_Y = 100
-BUFF_MACHINE_TEXT_X = BUFF_MACHINE_X + 8
 BUFF_MACHINE_TEXT_W = buff_machine_image.get_width() - 16
+BUFF_MACHINE_TEXT_X = BUFF_MACHINE_X + 8
+
 
 button_machine = Button(
     BUFF_MACHINE_X + (buff_machine_image.get_width() - 183) // 2,
     BUFF_MACHINE_Y + buff_machine_image.get_height() + 48
 )
+
 buffm = BuffMachine()
 buffm_intermission_timer = Timer(120000)
-show_buff_effect_end_notice = False
 buff_effect_end_notice_timer = Timer(2000)
 
 notif_timer = Timer(1500)

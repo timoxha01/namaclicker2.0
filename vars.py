@@ -53,3 +53,8 @@ show_boost = False
 next_mode = ""
 
 EXCHANGE_CLICKS_PER_NAMACOIN = 50
+
+
+BUFF_MACHINE_Y = 100
+show_buff_effect_end_notice = False
+

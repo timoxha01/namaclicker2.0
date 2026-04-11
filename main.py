@@ -2,15 +2,11 @@ import random
 import pygame
 import os
 import datasave
-import vars
 from vars import *
-from classes import *
 from funcs import *
 
 pygame.init()
 pygame.mixer.init()
-
-print("Loading...")
 
 MUSIC_END_EVENT = pygame.USEREVENT + 1
 pygame.mixer.music.set_endevent(MUSIC_END_EVENT)
@@ -20,7 +16,17 @@ screen = pygame.display.set_mode((W, H))
 clock = pygame.time.Clock()
 pygame.display.set_icon(pygame.image.load("assets/images/tamas/classic.png"))
 
-loading_font = pygame.font.SysFont("arial", 28)
+def draw_loading_screen(message):
+    loading_font = pygame.font.SysFont("arial", 28)
+    screen.fill((18, 18, 18))
+    title = loading_font.render("NamaClicker 2.0", True, (230, 230, 230))
+    text = loading_font.render(message, True, (180, 180, 180))
+    screen.blit(title, (vars.W // 2 - title.get_width() // 2, vars.H // 2 - 36))
+    screen.blit(text, (vars.W // 2 - text.get_width() // 2, vars.H // 2 + 8))
+    pygame.display.flip()
+    pygame.event.pump()
+    print(message)
+
 font_40 = pygame.font.Font(GAME_FONT, 40)
 font_30 = pygame.font.Font(GAME_FONT, 30)
 font_25 = pygame.font.Font(GAME_FONT, 25)
@@ -31,19 +37,6 @@ vars.font_30 = font_30
 vars.font_25 = font_25
 vars.font_20 = font_20
 
-def draw_loading_screen(message):
-    screen.fill((18, 18, 18))
-    title = loading_font.render("NamaClicker 2.0", True, (230, 230, 230))
-    text = loading_font.render(message, True, (180, 180, 180))
-    screen.blit(title, (W // 2 - title.get_width() // 2, H // 2 - 36))
-    screen.blit(text, (W // 2 - text.get_width() // 2, H // 2 + 8))
-    pygame.display.flip()
-    pygame.event.pump()
-
-
-draw_loading_screen("Загрузка ассетов...")
-from assets_loading import *
-
 SAVE_PATH = os.path.join(os.path.dirname(__file__), "data.json")
 save_system = datasave.SaveSystem(
     pygame=pygame,
@@ -53,12 +46,13 @@ save_system = datasave.SaveSystem(
     save_version=1,
 )
 
-draw_loading_screen("Загрузка сохранения...")
+draw_loading_screen("Инициализация мира...")
+from classes import *
+from assets_loading import *
 save_system.load(vars.__dict__)
 
-play_next_soundtrack()
-print("Game Loaded, Booting up...")
 
+play_next_soundtrack()
 running = True
 while running:
     for event in pygame.event.get():
@@ -1182,7 +1176,6 @@ while running:
 
     save_system.maybe_autosave(vars.__dict__)
     pygame.display.flip()
-    clock.tick(FPS)
+    clock.tick(vars.FPS)
 
-print("Game is quitting")
 pygame.quit()

@@ -151,7 +151,8 @@ tamas = [
     Namas("demon", "assets/images/tamas/demon.png", 0.01),
     Namas("boykisser", "assets/images/tamas/boykisser.png", 0.01),
     Namas("sanic", "assets/images/tamas/sanic_ee.png", 0.001),
-    Namas("glitch", "assets/images/tamas/glitch_ee.png", 0.001)
+    Namas("glitch", "assets/images/tamas/glitch_ee.png", 0.001),
+    Namas("lemon_guy", "assets/images/tamas/lemon_guy.png", 0.001)
 ]
 
 tama_on_screen = tamas[0]
